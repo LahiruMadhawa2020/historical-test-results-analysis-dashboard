@@ -6,6 +6,6 @@
     "dashboard:generate": "node scripts/generate-dashboard.mjs"
   },
   "devDependencies": {
-    "historical-test-results-analysis-dashboard": "file:../historical-test-results-analysis-dashboard"
+    "historical-analytics-dashboard": "file:../historical-analytics-dashboard"
   }
 }

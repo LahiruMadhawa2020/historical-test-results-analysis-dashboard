@@ -1,5 +1,5 @@
 {
-  "name": "historical-test-results-analysis-dashboard",
+  "name": "historical-analytics-dashboard",
   "version": "0.2.0",
   "description": "Historical test execution analysis dashboard orchestrator for Newman and future test tools",
   "repository": {

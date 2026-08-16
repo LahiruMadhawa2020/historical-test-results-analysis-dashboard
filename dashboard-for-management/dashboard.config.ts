@@ -1,4 +1,4 @@
-import type { ManagementDashboardConfigFile, ManagementSourceConfig } from 'historical-analytics-dashboard';
+import type { ApplicationType, ManagementDashboardConfigFile, ManagementSourceConfig } from 'historical-analytics-dashboard';
 
 type ProjectKey = 'WK' | 'DELL' | 'Sr Link';
 
@@ -25,7 +25,7 @@ const STANDARD_TOOL_IDS = [
 ] as const;
 
 const STANDARD_FILTERS = {
-  applicationTypes: ['UI', 'API', 'Mobile'] as const,
+  applicationTypes: ['UI', 'API', 'Mobile'] as ApplicationType[],
   toolNames: [...STANDARD_TOOL_IDS],
   showFrameworkFilter: false,
   showToolFilter: true,

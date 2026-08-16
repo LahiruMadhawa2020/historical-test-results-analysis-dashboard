@@ -14,7 +14,7 @@
     "@wdio/local-runner": "^8.35.1",
     "@wdio/mocha-framework": "^8.35.1",
     "@wdio/spec-reporter": "^8.32.4",
-    "historical-test-results-analysis-dashboard": "file:../../historical-test-results-analysis-dashboard",
+    "historical-analytics-dashboard": "file:../../historical-analytics-dashboard",
     "typescript": "^5.4.2"
   }
 }
