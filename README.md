@@ -8,10 +8,9 @@ Historical test execution analysis dashboard for Node.js. Import test results fr
 
 ## Live Dashboard Previews
 
-[Landing Page](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/)
-
 | Dashboard | Preview |
 |-----------|---------|
+| [Landing Page](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/) | Overview & links to all dashboards |
 | OrangeHRM Playwright (UI) | [View Live](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/orangehrm-dashboard.html) |
 | JSONPlaceholder Newman (API) | [View Live](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/jsonplaceholder-dashboard.html) |
 | Management Dashboard | [View Live](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/management-dashboard.html) |
