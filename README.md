@@ -1,10 +1,18 @@
 # historical-analytics-dashboard
 
 [![npm version](https://img.shields.io/npm/v/historical-analytics-dashboard.svg)](https://www.npmjs.com/package/historical-analytics-dashboard)
-[![license](https://img.shields.io/npm/l/historical-analytics-dashboard.svg)](https://github.com/publisheswithlahiru91/historical-test-results-analysis-dashboard/blob/master/LICENSE)
+[![license](https://img.shields.io/npm/l/historical-analytics-dashboard.svg)](https://github.com/LahiruMadhawa2020/historical-test-results-analysis-dashboard/blob/master/LICENSE)
 [![node](https://img.shields.io/node/v/historical-analytics-dashboard.svg)](https://nodejs.org)
 
 Historical test execution analysis dashboard for Node.js. Import test results from Newman, JUnit XML, Playwright JSON, and Cypress, store execution history over time, and generate self-contained HTML analytics dashboards with interactive filtering and a reset filters button.
+
+## Live Dashboard Previews
+
+| Dashboard | Preview |
+|-----------|---------|
+| OrangeHRM Playwright (UI) | [View Live](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/orangehrm-dashboard.html) |
+| JSONPlaceholder Newman (API) | [View Live](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/jsonplaceholder-dashboard.html) |
+| Management Dashboard | [View Live](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/management-dashboard.html) |
 
 ## Features
 

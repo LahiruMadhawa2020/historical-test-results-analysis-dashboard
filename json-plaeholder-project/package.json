@@ -13,6 +13,6 @@
     "newman-reporter-htmlextra": "^1.23.0"
   },
   "dependencies": {
-    "historical-analytics-dashboard": "https://github.com/publisheswithlahiru91/historical-test-results-analysis-dashboard.git"
+    "historical-analytics-dashboard": "^0.2.0"
   }
 }
