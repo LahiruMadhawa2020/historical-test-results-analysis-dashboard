@@ -8,6 +8,8 @@ Historical test execution analysis dashboard for Node.js. Import test results fr
 
 ## Live Dashboard Previews
 
+[Landing Page](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/)
+
 | Dashboard | Preview |
 |-----------|---------|
 | OrangeHRM Playwright (UI) | [View Live](https://lahirumadhawa2020.github.io/historical-test-results-analysis-dashboard/orangehrm-dashboard.html) |
