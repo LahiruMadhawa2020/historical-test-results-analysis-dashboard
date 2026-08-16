@@ -1,10 +1,32 @@
 {
   "name": "historical-analytics-dashboard",
   "version": "0.2.0",
-  "description": "Historical test execution analysis dashboard orchestrator for Newman and future test tools",
+  "description": "Historical test execution analysis dashboard — import Newman, JUnit XML, Playwright, and Cypress results, store execution history, and generate HTML analytics dashboards",
+  "keywords": [
+    "test-dashboard",
+    "test-analytics",
+    "newman",
+    "postman",
+    "junit",
+    "playwright",
+    "cypress",
+    "selenium",
+    "webdriverio",
+    "test-results",
+    "html-dashboard",
+    "ci-cd",
+    "test-reporting"
+  ],
+  "author": "Lahiru Madhawa",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LahiruMadhawa2020/historical-test-results-analysis-dashboard.git"
+    "url": "https://github.com/LahiruMadhawa2020/historical-test-results-analysis-dashboard.git",
+    "directory": "historical-analytics-dashboard"
+  },
+  "homepage": "https://github.com/LahiruMadhawa2020/historical-test-results-analysis-dashboard#readme",
+  "bugs": {
+    "url": "https://github.com/LahiruMadhawa2020/historical-test-results-analysis-dashboard/issues"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -25,6 +47,7 @@
   "scripts": {
     "build": "tsc && copyfiles -u 2 \"src/templates/*.html\" dist/templates/",
     "dev": "npm run build && node dist/cli.js",
+    "prepublishOnly": "npm run build",
     "prepare": "npm run build"
   },
   "dependencies": {
@@ -41,6 +64,5 @@
   },
   "engines": {
     "node": ">=18"
-  },
-  "license": "MIT"
+  }
 }
