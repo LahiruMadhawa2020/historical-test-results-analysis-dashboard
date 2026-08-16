@@ -21,7 +21,9 @@ yarn-error.log*
 
 # Python
 .pytest_cache/
+**/.pytest_cache/
 __pycache__/
+**/__pycache__/
 *.pyc
 
 # OS files
