@@ -85,7 +85,7 @@ Received string:    "Dashboard"
           - listitem [ref=f1e124]:
             - generic [ref=f1e125] [cursor=pointer]:
               - img "profile picture" [ref=f1e126]
-              - paragraph [ref=f1e127]: manda user
+              - paragraph [ref=f1e127]: First Name Last Name
               - generic [ref=f1e128]: 
       - navigation "Topbar Menu" [ref=f1e130]:
         - list [ref=f1e131]:
@@ -124,42 +124,42 @@ Received string:    "Dashboard"
             - generic [ref=f1e194] [cursor=pointer]:
               - img "profile picture" [ref=f1e196]
               - generic [ref=f1e197]:
-                - paragraph [ref=f1e198]: manda akhil user
-                - paragraph [ref=f1e199]: 2026-16-08 11:46 PM
+                - paragraph [ref=f1e198]: First Name Middle Name Last Name
+                - paragraph [ref=f1e199]: 2026-17-08 12:12 AM
             - separator [ref=f1e200]
-            - paragraph [ref=f1e201]: Automation Test Post - 1786904218531
+            - paragraph [ref=f1e201]: Automation Test Post - 1786905726710
           - generic [ref=f1e202]:
             - generic [ref=f1e203] [cursor=pointer]:
               - img "profile picture" [ref=f1e205]
               - generic [ref=f1e206]:
-                - paragraph [ref=f1e207]: manda akhil user
-                - paragraph [ref=f1e208]: 2026-16-08 11:39 PM
+                - paragraph [ref=f1e207]: First Name Middle Name Last Name
+                - paragraph [ref=f1e208]: 2026-17-08 12:03 AM
             - separator [ref=f1e209]
-            - paragraph [ref=f1e210]: Automation Test Post - 1786903765251
+            - paragraph [ref=f1e210]: Automation Test Post - 1786905237001
           - generic [ref=f1e211]:
             - generic [ref=f1e212] [cursor=pointer]:
               - img "profile picture" [ref=f1e214]
               - generic [ref=f1e215]:
-                - paragraph [ref=f1e216]: manda akhil user
-                - paragraph [ref=f1e217]: 2020-08-10 09:08 AM
+                - paragraph [ref=f1e216]: First Name Middle Name Last Name
+                - paragraph [ref=f1e217]: 2026-17-08 12:00 AM
             - separator [ref=f1e218]
-            - paragraph [ref=f1e219]: "Hi All; Linda has been blessed with a baby boy! Linda: With love, we welcome your dear new baby to this world. Congratulations!"
+            - paragraph [ref=f1e219]: Automation Test Post - 1786905049189
           - generic [ref=f1e220]:
             - generic [ref=f1e221] [cursor=pointer]:
               - img "profile picture" [ref=f1e223]
               - generic [ref=f1e224]:
-                - paragraph [ref=f1e225]: Sania Shaheen
-                - paragraph [ref=f1e226]: 2020-08-10 09:08 AM
+                - paragraph [ref=f1e225]: First Name Middle Name Last Name
+                - paragraph [ref=f1e226]: 2026-16-08 11:46 PM
             - separator [ref=f1e227]
-            - paragraph [ref=f1e228]: "World Championship: What makes the perfect snooker player? Mark Selby: Robertson has one of the best techniques in the game. It is very, very straight and he fully commits to every single shot he plays. John Higgins: Every shot is repetitive. He always keeps the same technique and cues through the ball bang straight. Barry Hawkins: Robertson is textbook with his grip and has a ramrod solid cue action, delivering it in a straight line. Honourable mentions: Shaun Murphy, Ding Junhui, Jack Lisowski."
+            - paragraph [ref=f1e228]: Automation Test Post - 1786904218531
           - generic [ref=f1e229]:
             - generic [ref=f1e230] [cursor=pointer]:
               - img "profile picture" [ref=f1e232]
               - generic [ref=f1e233]:
-                - paragraph [ref=f1e234]: Rebecca Harmony
-                - paragraph [ref=f1e235]: 2020-08-10 09:04 AM
+                - paragraph [ref=f1e234]: First Name Middle Name Last Name
+                - paragraph [ref=f1e235]: 2026-16-08 11:39 PM
             - separator [ref=f1e236]
-            - paragraph [ref=f1e237]: Throwback Thursdays!!
+            - paragraph [ref=f1e237]: Automation Test Post - 1786903765251
       - generic [ref=f1e239]:
         - generic [ref=f1e240]:
           - paragraph [ref=f1e245]: Employees on Leave Today

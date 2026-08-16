@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Dashboard - Test Execution Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .clickable-row { cursor: pointer; transition: background-color 0.2s; }
+        .status-Success { background-color: #d1e7dd; color: #0f5132; padding: 4px 10px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+        .status-Warning { background-color: #fff3cd; color: #664d03; padding: 4px 10px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+        .status-Failure { background-color: #f8d7da; color: #842029; padding: 4px 10px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+        [data-bs-theme="dark"] .status-Success { background-color: #0f5132; color: #d1e7dd; }
+        [data-bs-theme="dark"] .status-Warning { background-color: #664d03; color: #fff3cd; }
+        [data-bs-theme="dark"] .status-Failure { background-color: #842029; color: #f8d7da; }
+        .filter-label { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #6c757d; }
+        .chart-box { height: 320px; position: relative; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4 px-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <h2 id="dashboard-title" class="fw-bold m-0">Management Dashboard</h2>
+                <small id="generated-at" class="text-muted"></small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button id="theme-toggle" type="button" class="btn btn-outline-secondary btn-sm">Dark mode</button>
+                <span id="dashboard-version" class="badge text-bg-dark px-3 py-2 fs-6">v0.1.0</span>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-secondary m-0">Filters</h6>
+                <button id="reset-filters" type="button" class="btn btn-outline-secondary btn-sm">Reset Filters</button>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="filter-label" for="filter-application-type">Application Type</label>
+                    <select id="filter-application-type" class="form-select form-select-sm">
+                        <option value="">All types</option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="filter-tool-group">
+                    <label class="filter-label" for="filter-tool">Tool</label>
+                    <select id="filter-tool" class="form-select form-select-sm">
+                        <option value="">All tools</option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="filter-project-group">
+                    <label class="filter-label" for="filter-project">Project</label>
+                    <select id="filter-project" class="form-select form-select-sm">
+                        <option value="">All projects</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <small class="text-muted text-uppercase fw-bold">Filtered Runs</small>
+                    <h3 id="stat-total-runs" class="fw-bold m-0">0 runs</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <small class="text-muted text-uppercase fw-bold">Success Pass Rate</small>
+                    <h3 id="stat-success-rate" class="fw-bold m-0 text-success">0%</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <small class="text-muted text-uppercase fw-bold">Projects</small>
+                    <h3 id="stat-projects" class="fw-bold m-0 text-primary">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3">
+                    <small class="text-muted text-uppercase fw-bold">Tools Active</small>
+                    <h3 id="stat-tools" class="fw-bold m-0 text-info">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="card p-3 h-100">
+                    <h6 class="fw-bold mb-3 text-secondary">Cross-Project Pass / Fail Trend & Response Times</h6>
+                    <div class="chart-box">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 h-100">
+                    <div class="chart-box">
+                        <canvas id="latencyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3">Execution Ledger <span class="fs-6 fw-normal text-muted">(Click any row for request details)</span></h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle m-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Run ID</th>
+                            <th>Project</th>
+                            <th>App Type</th>
+                            <th>Framework</th>
+                            <th>Tool</th>
+                            <th>Source</th>
+                            <th>Timestamp</th>
+                            <th>Assertions (P/F)</th>
+                            <th>Avg Response</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="execution-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" style="width: 45%;" tabindex="-1" id="detailsDrawer" aria-labelledby="detailsDrawerLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold" id="detailsDrawerLabel">Run Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body" id="drawer-content-body"></div>
+    </div>
+
+    <script id="dashboard-data" type="application/json">{"mode":"management","title":"Management Dashboard - Test Execution Analytics","version":"0.2.0","defaultTheme":"light","generatedAt":"2026-08-16 19:07:31","history":[{"runId":"RUN-399076","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-16 17:59:58","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":254},"requests":[{"id":"0f2ac25a-59f0-4b75-8567-157cea4cd076","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":354,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"9965e46b-662f-4b2b-aac8-c1fd10549026","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":41,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"77f7e366-44b6-4dd2-9d5d-43c62262c098","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":608,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"1ab31758-c720-4b7f-aa08-a1b8fec1ffb8","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":43,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"62aa970a-7679-4b16-b61c-6e529937ac18","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":225,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{},"projectId":"jsonplaceholder","projectName":"JSONPlaceholder API Testing","frameworkName":"json-plaeholder-project","applicationType":"API","methodology":"TDD"},{"runId":"RUN-790649","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-16 18:14:38","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":319},"requests":[{"id":"8a2b0530-ed97-4a5e-a69f-4cc4ca405953","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":486,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"2bf99d2d-5ffe-44db-a387-d7cbbd40ece1","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":44,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"1c28a205-987c-4e51-90c9-50d272b2f690","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":777,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"55bdc3d3-65a5-40ff-8845-5a276778a5d0","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":55,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"3fa108f1-13e0-4755-8439-1bac66b4ea26","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":231,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{},"projectId":"jsonplaceholder","projectName":"JSONPlaceholder API Testing","frameworkName":"json-plaeholder-project","applicationType":"API","methodology":"TDD"},{"runId":"RUN-552272","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-16 18:20:01","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":270},"requests":[{"id":"136c96f1-c6c4-487d-83b1-074271b9d004","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":423,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"dbef723d-908c-4d67-8c86-681ece2a6715","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":43,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"b63f4bc8-901d-46d8-b2be-e8f473a37447","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":609,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"370a4dfc-5164-4984-b016-9116625b6013","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":39,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"7d7c5995-ce70-48cd-a8fc-f2d4c4b9b8c3","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":236,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{"collectionPath":"/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/json-plaeholder-project/collections/jsonplaceholder-crud.postman_collection.json","runStats":{"iterations":{"total":1,"pending":0,"failed":0},"items":{"total":5,"pending":0,"failed":0},"scripts":{"total":6,"pending":0,"failed":0},"prerequests":{"total":5,"pending":0,"failed":0},"requests":{"total":5,"pending":0,"failed":0},"tests":{"total":5,"pending":0,"failed":0},"assertions":{"total":12,"pending":0,"failed":0},"testScripts":{"total":5,"pending":0,"failed":0},"prerequestScripts":{"total":1,"pending":0,"failed":0}}},"projectId":"jsonplaceholder","projectName":"JSONPlaceholder API Testing","frameworkName":"json-plaeholder-project","applicationType":"API","methodology":"TDD"},{"runId":"RUN-716758","tool":"playwright-ts-tdd","sourceName":"test-results.json","timestamp":"2026-08-16 18:20:21","status":"Failure","summary":{"totalRequests":3,"passedAssertions":1,"failedAssertions":2,"avgResponseTimeMs":5156},"requests":[{"id":"PW-1","name":"login-logout.failing.spec.ts > OrangeHRM Login/Logout - Failing Tests > should fail when expecting wrong dashboard header text","method":"TEST","url":"chromium","statusCode":500,"responseTimeMs":5332,"assertions":[{"name":"login-logout.failing.spec.ts > OrangeHRM Login/Logout - Failing Tests > should fail when expecting wrong dashboard header text","passed":false,"errorMessage":"Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"Wrong Dashboard Header Text That Does Not Exist\"\u001b[39m\nReceived string:    \u001b[31m\"Dashboard\"\u001b[39m"}]},{"id":"PW-2","name":"login-logout.failing.spec.ts > OrangeHRM Login/Logout - Failing Tests > should fail when trying to login with invalid credentials","method":"TEST","url":"chromium","statusCode":500,"responseTimeMs":3958,"assertions":[{"name":"login-logout.failing.spec.ts > OrangeHRM Login/Logout - Failing Tests > should fail when trying to login with invalid credentials","passed":false,"errorMessage":"Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeNull\u001b[2m()\u001b[22m\n\nReceived: \u001b[31m\"Invalid credentials\"\u001b[39m"}]},{"id":"PW-3","name":"login-logout.passing.spec.ts > OrangeHRM Login/Logout - Passing Tests > should login with valid credentials and logout successfully","method":"TEST","url":"chromium","statusCode":200,"responseTimeMs":6178,"assertions":[{"name":"login-logout.passing.spec.ts > OrangeHRM Login/Logout - Passing Tests > should login with valid credentials and logout successfully","passed":true}]}],"metadata":{"reportPath":"/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/test-results.json","format":"playwright-json","rootDir":"/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests"},"applicationType":"UI","methodology":"TDD","projectId":"orangehrm","projectName":"OrangeHRM Testing","frameworkName":"orange-hrm-framework"},{"runId":"RUN-920812","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-16 19:07:17","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":269},"requests":[{"id":"73f9927a-1c3e-4c79-aa0b-aee3bfe3cf58","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":387,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"89d1801f-4109-477b-b18f-d647509fe80e","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":43,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"f9d81bbf-b433-42c1-84b2-1f56eb133db0","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":604,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"01830d5d-067d-4d7c-94ba-432641df9c26","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":81,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"4a55208f-e9ae-40e2-86f8-1c7457d4cf14","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":230,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{"collectionPath":"/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/json-plaeholder-project/collections/jsonplaceholder-crud.postman_collection.json","runStats":{"iterations":{"total":1,"pending":0,"failed":0},"items":{"total":5,"pending":0,"failed":0},"scripts":{"total":6,"pending":0,"failed":0},"prerequests":{"total":5,"pending":0,"failed":0},"requests":{"total":5,"pending":0,"failed":0},"tests":{"total":5,"pending":0,"failed":0},"assertions":{"total":12,"pending":0,"failed":0},"testScripts":{"total":5,"pending":0,"failed":0},"prerequestScripts":{"total":1,"pending":0,"failed":0}}},"projectId":"jsonplaceholder","projectName":"JSONPlaceholder API Testing","frameworkName":"json-plaeholder-project","applicationType":"API","methodology":"TDD"},{"runId":"RUN-486068","tool":"playwright-ts-tdd","sourceName":"test-results.json","timestamp":"2026-08-16 19:07:29","status":"Failure","summary":{"totalRequests":3,"passedAssertions":1,"failedAssertions":2,"avgResponseTimeMs":5356},"requests":[{"id":"PW-1","name":"login-logout.failing.spec.ts > OrangeHRM Login/Logout - Failing Tests > should fail when expecting wrong dashboard header text","method":"TEST","url":"chromium","statusCode":500,"responseTimeMs":6267,"assertions":[{"name":"login-logout.failing.spec.ts > OrangeHRM Login/Logout - Failing Tests > should fail when expecting wrong dashboard header text","passed":false,"errorMessage":"Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"Wrong Dashboard Header Text That Does Not Exist\"\u001b[39m\nReceived string:    \u001b[31m\"Dashboard\"\u001b[39m"}]},{"id":"PW-2","name":"login-logout.failing.spec.ts > OrangeHRM Login/Logout - Failing Tests > should fail when trying to login with invalid credentials","method":"TEST","url":"chromium","statusCode":500,"responseTimeMs":4224,"assertions":[{"name":"login-logout.failing.spec.ts > OrangeHRM Login/Logout - Failing Tests > should fail when trying to login with invalid credentials","passed":false,"errorMessage":"Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeNull\u001b[2m()\u001b[22m\n\nReceived: \u001b[31m\"Invalid credentials\"\u001b[39m"}]},{"id":"PW-3","name":"login-logout.passing.spec.ts > OrangeHRM Login/Logout - Passing Tests > should login with valid credentials and logout successfully","method":"TEST","url":"chromium","statusCode":200,"responseTimeMs":5578,"assertions":[{"name":"login-logout.passing.spec.ts > OrangeHRM Login/Logout - Passing Tests > should login with valid credentials and logout successfully","passed":true}]}],"metadata":{"reportPath":"/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/test-results.json","format":"playwright-json","rootDir":"/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests"},"applicationType":"UI","methodology":"TDD","projectId":"orangehrm","projectName":"OrangeHRM Testing","frameworkName":"orange-hrm-framework"}],"filterOptions":{"applicationTypes":["UI","API","Mobile"],"frameworkNames":["json-plaeholder-project","orange-hrm-framework"],"toolNames":["cypress-bdd","cypress-tdd","newman","playwright-java-bdd","playwright-java-tdd","playwright-ts-tdd","selenium-java-bdd","selenium-java-tdd","wdio-java-bdd","wdio-java-tdd"],"projectNames":["JSONPlaceholder API Testing","OrangeHRM Testing"]},"filters":{"applicationTypes":["UI","API","Mobile"],"toolNames":["cypress-bdd","cypress-tdd","newman","playwright-java-bdd","playwright-java-tdd","playwright-ts-tdd","selenium-java-bdd","selenium-java-tdd","wdio-java-bdd","wdio-java-tdd"],"showFrameworkFilter":false,"showToolFilter":true,"showProjectFilter":true}}</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const payload = JSON.parse(document.getElementById('dashboard-data').textContent);
+        let allRuns = [];
+        let filteredRuns = [];
+        const bsDrawer = new bootstrap.Offcanvas(document.getElementById('detailsDrawer'));
+        const themeToggle = document.getElementById('theme-toggle');
+        const showFrameworkFilter = (payload.filters || {}).showFrameworkFilter !== false;
+
+        function normalizeRun(run) {
+            const summary = run.summary || {};
+            const requests = (run.requests || []).map((request) => ({
+                ...request,
+                responseTimeMs: request.responseTimeMs ?? request.responseTime ?? 0
+            }));
+
+            return {
+                key: `${run.projectId || 'unknown'}:${run.runId}`,
+                runId: run.runId,
+                projectId: run.projectId || 'unknown',
+                projectName: run.projectName || 'Unknown Project',
+                applicationType: run.applicationType || 'API',
+                frameworkName: run.frameworkName || 'Unknown Framework',
+                methodology: run.methodology || '',
+                tool: run.tool || 'newman',
+                sourceName: run.sourceName || run.collectionName || 'Unknown Source',
+                timestamp: run.timestamp,
+                status: run.status,
+                passedAssertions: summary.passedAssertions ?? run.passedAssertions ?? 0,
+                failedAssertions: summary.failedAssertions ?? run.failedAssertions ?? 0,
+                avgResponseTimeMs: summary.avgResponseTimeMs ?? run.avgResponseTime ?? 0,
+                requests
+            };
+        }
+
+        function uniqueSorted(values) {
+            return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        }
+
+        function toolOptionsForRuns(runs) {
+            const fromRuns = uniqueSorted(runs.map((run) => run.tool));
+            const allowlist = payload.filters?.toolNames || payload.filterOptions?.toolNames;
+            if (allowlist?.length) {
+                const available = fromRuns.length ? fromRuns : allowlist;
+                return allowlist.filter((tool) => available.includes(tool));
+            }
+            return fromRuns;
+        }
+
+        function appTypeOptionsForRuns(runs) {
+            const fromRuns = uniqueSorted(runs.map((run) => run.applicationType));
+            const allowlist = payload.filters?.applicationTypes || payload.filterOptions?.applicationTypes;
+            if (allowlist?.length) {
+                const available = fromRuns.length ? fromRuns : allowlist;
+                return allowlist.filter((type) => available.includes(type));
+            }
+            return fromRuns;
+        }
+
+        function projectOptionsForRuns(runs) {
+            return uniqueSorted(runs.map((run) => run.projectName));
+        }
+
+        function getFilterValue(id) {
+            return document.getElementById(id).value;
+        }
+
+        function runsMatchingFilters(excludeId) {
+            const appType = excludeId === 'filter-application-type' ? '' : getFilterValue('filter-application-type');
+            const tool = excludeId === 'filter-tool' ? '' : getFilterValue('filter-tool');
+            const project = excludeId === 'filter-project' ? '' : getFilterValue('filter-project');
+
+            return allRuns.filter((run) => {
+                if (appType && run.applicationType !== appType) return false;
+                if (tool && run.tool !== tool) return false;
+                if (project && run.projectName !== project) return false;
+                return true;
+            });
+        }
+
+        function rebuildSelect(selectId, allLabel, values, currentValue) {
+            const select = document.getElementById(selectId);
+            const nextValue = values.includes(currentValue) ? currentValue : '';
+            select.innerHTML = `<option value="">${allLabel}</option>`;
+            values.forEach((value) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                select.appendChild(option);
+            });
+            select.value = nextValue;
+        }
+
+        function syncFilters() {
+            const appTypeValue = getFilterValue('filter-application-type');
+            const toolValue = getFilterValue('filter-tool');
+            const projectValue = getFilterValue('filter-project');
+
+            rebuildSelect(
+                'filter-application-type',
+                'All types',
+                appTypeOptionsForRuns(runsMatchingFilters('filter-application-type')),
+                appTypeValue
+            );
+            rebuildSelect(
+                'filter-tool',
+                'All tools',
+                toolOptionsForRuns(runsMatchingFilters('filter-tool')),
+                toolValue
+            );
+            rebuildSelect(
+                'filter-project',
+                'All projects',
+                projectOptionsForRuns(runsMatchingFilters('filter-project')),
+                projectValue
+            );
+        }
+
+        function applyFilters() {
+            syncFilters();
+            const appType = getFilterValue('filter-application-type');
+            const tool = getFilterValue('filter-tool');
+            const project = getFilterValue('filter-project');
+
+            filteredRuns = allRuns.filter((run) => {
+                if (appType && run.applicationType !== appType) return false;
+                if (tool && run.tool !== tool) return false;
+                if (project && run.projectName !== project) return false;
+                return true;
+            });
+
+            renderDashboard();
+        }
+
+        function getStoredTheme(defaultTheme) {
+            return localStorage.getItem('dashboard-theme') || defaultTheme || 'light';
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('dashboard-theme', theme);
+            themeToggle.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const nextTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        });
+
+        function resetFilters() {
+            document.getElementById('filter-application-type').value = '';
+            document.getElementById('filter-tool').value = '';
+            document.getElementById('filter-project').value = '';
+            applyFilters();
+        }
+
+        function initFilters() {
+            const filters = payload.filters || {};
+
+            if (filters.showToolFilter === false) {
+                document.getElementById('filter-tool-group').classList.add('d-none');
+            }
+            if (filters.showProjectFilter === false) {
+                document.getElementById('filter-project-group').classList.add('d-none');
+            }
+
+            ['filter-application-type', 'filter-tool', 'filter-project'].forEach((id) => {
+                document.getElementById(id).addEventListener('change', applyFilters);
+            });
+            document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+            syncFilters();
+        }
+
+        function renderDashboard() {
+            const data = filteredRuns;
+
+            if (!data.length) {
+                document.getElementById('stat-total-runs').innerText = '0 runs';
+                document.getElementById('stat-success-rate').innerText = '0%';
+                document.getElementById('stat-projects').innerText = '0';
+                document.getElementById('stat-tools').innerText = '0';
+                document.getElementById('execution-table-body').innerHTML =
+                    '<tr><td colspan="10" class="text-center text-muted py-4">No runs match the selected filters.</td></tr>';
+                renderCharts([]);
+                return;
+            }
+
+            const projects = new Set(data.map((run) => run.projectName));
+            const tools = new Set(data.map((run) => run.tool));
+            const passCount = data.filter((run) => run.status !== 'Failure').length;
+
+            document.getElementById('stat-total-runs').innerText = `${data.length} executions`;
+            document.getElementById('stat-success-rate').innerText = `${Math.round((passCount / data.length) * 100)}%`;
+            document.getElementById('stat-projects').innerText = `${projects.size}`;
+            document.getElementById('stat-tools').innerText = `${tools.size}`;
+
+            const tbody = document.getElementById('execution-table-body');
+            tbody.innerHTML = '';
+
+            data.slice().reverse().forEach((run) => {
+                const row = document.createElement('tr');
+                row.className = 'clickable-row';
+                row.onclick = () => showDetailedRunBreakdown(run.key);
+                row.innerHTML = `
+                    <td class="fw-bold text-primary">${run.runId}</td>
+                    <td>${run.projectName}</td>
+                    <td><span class="badge text-bg-info">${run.applicationType}</span></td>
+                    <td>${run.frameworkName}</td>
+                    <td><span class="badge text-bg-secondary">${run.tool}</span></td>
+                    <td>${run.sourceName}</td>
+                    <td class="text-muted">${run.timestamp}</td>
+                    <td><span class="text-success">${run.passedAssertions} ✓</span> / <span class="text-danger">${run.failedAssertions} ✗</span></td>
+                    <td><strong>${run.avgResponseTimeMs}ms</strong></td>
+                    <td><span class="status-${run.status}">${run.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            renderCharts(data);
+        }
+
+        function showDetailedRunBreakdown(runKey) {
+            const run = filteredRuns.find((entry) => entry.key === runKey);
+            if (!run) return;
+
+            document.getElementById('detailsDrawerLabel').innerText = `Execution Report: ${run.runId}`;
+            const body = document.getElementById('drawer-content-body');
+
+            let html = `
+                <div class="mb-4">
+                    <h6><strong>Project:</strong> ${run.projectName}</h6>
+                    <h6><strong>Application Type:</strong> ${run.applicationType}</h6>
+                    <h6><strong>Framework:</strong> ${run.frameworkName}</h6>
+                    <h6><strong>Tool:</strong> ${run.tool}</h6>
+                    <h6><strong>Source:</strong> ${run.sourceName}</h6>
+                    ${run.methodology ? `<h6><strong>Methodology:</strong> ${run.methodology}</h6>` : ''}
+                    <p class="text-muted mb-1">Executed at: ${run.timestamp}</p>
+                    <div class="badge text-bg-secondary p-2">Average Response Latency: ${run.avgResponseTimeMs}ms</div>
+                </div>
+                <hr/>`;
+
+            run.requests.forEach((request, index) => {
+                const statusBadge = request.statusCode >= 200 && request.statusCode < 300 ? 'bg-success' : 'bg-danger';
+
+                html += `
+                    <div class="card p-3 mb-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold m-0">${index + 1}. ${request.name}</h6>
+                            <span class="badge ${statusBadge}">${request.method} ${request.statusCode}</span>
+                        </div>
+                        <div class="text-muted font-monospace small mb-2 text-truncate">${request.url}</div>
+                        <div class="small text-secondary mb-2">Response Time: <strong>${request.responseTimeMs}ms</strong></div>
+                        <div class="mt-2">
+                            <h6>Assertions:</h6>
+                            ${!request.assertions || request.assertions.length === 0
+                                ? '<p class="text-muted small m-0">No assertions defined for this step.</p>'
+                                : request.assertions.map((assertion) => `
+                                    <div class="d-flex align-items-start gap-2 my-1">
+                                        <span>${assertion.passed ? '✅' : '❌'}</span>
+                                        <div>
+                                            <span class="${assertion.passed ? 'text-success' : 'text-danger fw-bold'}">${assertion.name}</span>
+                                            ${assertion.errorMessage ? `<div class="text-muted font-monospace" style="font-size:11px">${assertion.errorMessage}</div>` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    </div>`;
+            });
+
+            body.innerHTML = html;
+            bsDrawer.show();
+        }
+
+        function renderCharts(data) {
+            const existingTrendChart = Chart.getChart('trendChart');
+            if (existingTrendChart) existingTrendChart.destroy();
+
+            const existingLatencyChart = Chart.getChart('latencyChart');
+            if (existingLatencyChart) existingLatencyChart.destroy();
+
+            const trendCanvas = document.getElementById('trendChart');
+            if (!trendCanvas || !data.length) return;
+
+            new Chart(trendCanvas, {
+                type: 'bar',
+                data: {
+                    labels: data.map((run) => `${run.projectName} / ${run.runId}`),
+                    datasets: [
+                        {
+                            label: 'Passed Assertions',
+                            data: data.map((run) => run.passedAssertions),
+                            backgroundColor: 'rgba(25, 135, 84, 0.6)',
+                            borderColor: '#198754',
+                            borderWidth: 1,
+                            stack: 'assertions',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Failed Assertions',
+                            data: data.map((run) => run.failedAssertions),
+                            backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                            borderColor: '#dc3545',
+                            borderWidth: 1,
+                            stack: 'assertions',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Avg Response Time (ms)',
+                            data: data.map((run) => run.avgResponseTimeMs),
+                            type: 'line',
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 8, right: 12, bottom: 8, left: 8 } },
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Assertions' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: 'Latency (ms)' },
+                            grid: { drawOnChartArea: false },
+                            ticks: { callback: (value) => `${value}ms` }
+                        }
+                    },
+                    onClick(event, _activeElements, chart) {
+                        const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                        if (points.length > 0) {
+                            showDetailedRunBreakdown(data[points[0].index].key);
+                        }
+                    }
+                }
+            });
+
+            const latencyCanvas = document.getElementById('latencyChart');
+            if (!latencyCanvas) return;
+
+            const latest = data[data.length - 1];
+            new Chart(latencyCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Passed Assertions', 'Failed Assertions'],
+                    datasets: [{
+                        data: [latest.passedAssertions, latest.failedAssertions],
+                        backgroundColor: ['#198754', '#dc3545'],
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: `Latest: ${latest.projectName} / ${latest.runId}` }
+                    }
+                }
+            });
+        }
+
+        function initMetricsEngine() {
+            document.getElementById('dashboard-title').innerText = payload.title;
+            document.title = payload.title;
+            document.getElementById('dashboard-version').innerText = `v${payload.version}`;
+            document.getElementById('generated-at').innerText = `Generated at ${payload.generatedAt}`;
+            applyTheme(getStoredTheme(payload.defaultTheme));
+
+            allRuns = (payload.history || []).map(normalizeRun);
+            filteredRuns = [...allRuns];
+
+            initFilters();
+            renderDashboard();
+        }
+
+        window.onload = initMetricsEngine;
+    </script>
+</body>
+</html>

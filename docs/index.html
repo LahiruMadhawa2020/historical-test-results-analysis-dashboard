@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Test Results Analysis Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        .hero {
+            background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 16px; font-weight: 700; }
+        .hero p { font-size: 1.15rem; opacity: 0.9; max-width: 700px; margin: 0 auto 24px; }
+        .hero .badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .hero .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            font-size: 0.85rem;
+            backdrop-filter: blur(4px);
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .section-title h2 { font-size: 1.8rem; margin-bottom: 8px; }
+        .section-title p { color: #6c757d; font-size: 1rem; }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        .card-preview {
+            width: 100%;
+            height: 220px;
+            border: none;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .card-body { padding: 20px; }
+        .card-body h3 { font-size: 1.15rem; margin-bottom: 8px; }
+        .card-body p { color: #6c757d; font-size: 0.9rem; margin-bottom: 16px; }
+        .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+        .card-tags span {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .tag-ui { background: #d1ecf1; color: #0c5460; }
+        .tag-api { background: #d4edda; color: #155724; }
+        .tag-management { background: #e2d9f3; color: #4a1d91; }
+        .tag-playwright { background: #fff3cd; color: #856404; }
+        .tag-newman { background: #f8d7da; color: #721c24; }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn-primary { background: #0d6efd; color: white; }
+        .btn-primary:hover { background: #0b5ed7; }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .feature {
+            background: white;
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        }
+        .feature h4 { margin-bottom: 8px; font-size: 1rem; }
+        .feature p { color: #6c757d; font-size: 0.88rem; }
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #6c757d;
+            font-size: 0.85rem;
+            border-top: 1px solid #e9ecef;
+            margin-top: 40px;
+        }
+        footer a { color: #0d6efd; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>Historical Test Results Analysis Dashboard</h1>
+    <p>Import test results from Newman, JUnit XML, Playwright, and Cypress. Store execution history over time. Generate self-contained HTML analytics dashboards.</p>
+    <div class="badges">
+        <span class="badge">Node.js &gt;= 18</span>
+        <span class="badge">MIT License</span>
+        <span class="badge">10 Tool Integrations</span>
+        <span class="badge">CLI &amp; Programmatic API</span>
+    </div>
+</div>
+
+<div class="container">
+    <div class="section-title">
+        <h2>Live Dashboard Previews</h2>
+        <p>Click a dashboard to open the full interactive version</p>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <iframe class="card-preview" src="orangehrm-dashboard.html" loading="lazy"></iframe>
+            <div class="card-body">
+                <h3>OrangeHRM Playwright Dashboard</h3>
+                <p>UI test results from Playwright TypeScript TDD framework testing OrangeHRM login/logout flows.</p>
+                <div class="card-tags">
+                    <span class="tag-ui">UI</span>
+                    <span class="tag-playwright">Playwright TS</span>
+                </div>
+                <a href="orangehrm-dashboard.html" class="btn btn-primary" target="_blank">Open Dashboard</a>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <iframe class="card-preview" src="jsonplaceholder-dashboard.html" loading="lazy"></iframe>
+            <div class="card-body">
+                <h3>JSONPlaceholder Newman Dashboard</h3>
+                <p>API test results from Newman/Postman collection runs against JSONPlaceholder REST API.</p>
+                <div class="card-tags">
+                    <span class="tag-api">API</span>
+                    <span class="tag-newman">Newman</span>
+                </div>
+                <a href="jsonplaceholder-dashboard.html" class="btn btn-primary" target="_blank">Open Dashboard</a>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <iframe class="card-preview" src="management-dashboard.html" loading="lazy"></iframe>
+            <div class="card-body">
+                <h3>Management Dashboard</h3>
+                <p>Cross-project management view aggregating test data from all framework projects.</p>
+                <div class="card-tags">
+                    <span class="tag-management">Management</span>
+                    <span class="tag-ui">UI</span>
+                    <span class="tag-api">API</span>
+                </div>
+                <a href="management-dashboard.html" class="btn btn-primary" target="_blank">Open Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <h2>Features</h2>
+    </div>
+    <div class="features">
+        <div class="feature">
+            <h4>Multi-Tool Support</h4>
+            <p>Newman, Playwright, Selenium, Cypress, and WebdriverIO with TDD/BDD methodologies.</p>
+        </div>
+        <div class="feature">
+            <h4>Historical Tracking</h4>
+            <p>Store execution history over time with configurable retention and run snapshots.</p>
+        </div>
+        <div class="feature">
+            <h4>HTML Dashboards</h4>
+            <p>Self-contained, interactive dashboards with filters, reset button, and dark/light themes.</p>
+        </div>
+        <div class="feature">
+            <h4>Management View</h4>
+            <p>Aggregate test data across multiple projects with filesystem and S3 storage support.</p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>Generated by <a href="https://github.com/LahiruMadhawa2020/historical-test-results-analysis-dashboard">historical-analytics-dashboard</a> &mdash; MIT License</p>
+</footer>
+
+</body>
+</html>
