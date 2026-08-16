@@ -1,0 +1,14 @@
+{
+  "name": "sr-link-selenium-bdd-testing",
+  "version": "1.0.0",
+  "description": "Sr Link — sr-link-selenium-bdd-testing",
+  "scripts": {
+    "test": "mvn -Dtest=RunCucumberTest test",
+    "analytics:import": "node scripts/copy-junit.mjs selenium-java-bdd com.srlink.selenium.bdd.RunCucumberTest && analytics-dashboard import reports/junit/selenium-java-bdd.xml --format junit-xml --tool selenium-java-bdd --application-type UI --methodology BDD --config dashboard.config.ts",
+    "analytics:run": "npm run test && npm run analytics:import && npm run analytics:generate",
+    "analytics:generate": "analytics-dashboard generate --config dashboard.config.ts"
+  },
+  "devDependencies": {
+    "historical-test-results-analysis-dashboard": "file:../../historical-test-results-analysis-dashboard"
+  }
+}

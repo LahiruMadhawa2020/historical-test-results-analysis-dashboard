@@ -1,0 +1,42 @@
+{
+  "name": "historical-test-results-analysis-dashboard",
+  "version": "0.2.0",
+  "description": "Historical test execution analysis dashboard orchestrator for Newman and future test tools",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "analytics-dashboard": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "dashboard.config.example.ts"
+  ],
+  "scripts": {
+    "build": "tsc && copyfiles -u 2 \"src/templates/*.html\" dist/templates/",
+    "dev": "npm run build && node dist/cli.js",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.529.1",
+    "jiti": "^2.4.2",
+    "newman": "^6.2.2",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/newman": "*",
+    "@types/node": "^20.11.0",
+    "copyfiles": "^2.4.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

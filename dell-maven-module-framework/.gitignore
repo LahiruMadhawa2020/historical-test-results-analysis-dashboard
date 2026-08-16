@@ -1,0 +1,9 @@
+node_modules/
+reports/
+.analytics-data/
+/newman/
+target/
+*.class
+.project
+.classpath
+.settings/

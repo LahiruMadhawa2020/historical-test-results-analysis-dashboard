@@ -1,0 +1,12 @@
+{
+  "name": "sr-link-git-module-framework",
+  "version": "1.0.0",
+  "description": "Sr Link git-module multi-tool framework with unified analytics dashboard",
+  "scripts": {
+    "analytics:smoke-import-all": "node scripts/smoke-import-all.mjs",
+    "analytics:generate": "node ../historical-test-results-analysis-dashboard/dist/cli.js generate --config dashboard.config.ts"
+  },
+  "devDependencies": {
+    "historical-test-results-analysis-dashboard": "file:../historical-test-results-analysis-dashboard"
+  }
+}

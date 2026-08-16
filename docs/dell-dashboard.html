@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Test Execution Analysis Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .clickable-row { cursor: pointer; transition: background-color 0.2s; }
+        .status-Success { background-color: #d1e7dd; color: #0f5132; padding: 4px 10px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+        .status-Warning { background-color: #fff3cd; color: #664d03; padding: 4px 10px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+        .status-Failure { background-color: #f8d7da; color: #842029; padding: 4px 10px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+        [data-bs-theme="dark"] .status-Success { background-color: #0f5132; color: #d1e7dd; }
+        [data-bs-theme="dark"] .status-Warning { background-color: #664d03; color: #fff3cd; }
+        [data-bs-theme="dark"] .status-Failure { background-color: #842029; color: #f8d7da; }
+        .filter-label { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #6c757d; }
+        .chart-box { height: 320px; position: relative; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4 px-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <h2 id="dashboard-title" class="fw-bold m-0">Historical Test Execution Analysis Dashboard</h2>
+                <small id="generated-at" class="text-muted"></small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button id="theme-toggle" type="button" class="btn btn-outline-secondary btn-sm">Dark mode</button>
+                <span id="dashboard-version" class="badge text-bg-dark px-3 py-2 fs-6">v0.1.0</span>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4">
+            <h6 class="fw-bold mb-3 text-secondary">Filters</h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="filter-label" for="filter-application-type">Application Type</label>
+                    <select id="filter-application-type" class="form-select form-select-sm">
+                        <option value="">All types</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="filter-label" for="filter-tool">Tool</label>
+                    <select id="filter-tool" class="form-select form-select-sm">
+                        <option value="">All tools</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <small class="text-muted text-uppercase fw-bold">Run History</small>
+                    <h3 id="stat-total-runs" class="fw-bold m-0">0 runs</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <small class="text-muted text-uppercase fw-bold">Success Pass Rate</small>
+                    <h3 id="stat-success-rate" class="fw-bold m-0 text-success">0%</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <small class="text-muted text-uppercase fw-bold">Application Types</small>
+                    <h3 id="stat-application-types" class="fw-bold m-0 text-primary">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="card p-3 h-100">
+                    <h6 class="fw-bold mb-3 text-secondary">Historical Pass / Fail Trend & Response Times</h6>
+                    <div class="chart-box">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 h-100">
+                    <div class="chart-box">
+                        <canvas id="latencyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3">Execution Ledger <span class="fs-6 fw-normal text-muted">(Click any row or chart point for request details)</span></h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle m-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Run ID</th>
+                            <th>Application Type</th>
+                            <th>Application</th>
+                            <th>Project</th>
+                            <th>Tool</th>
+                            <th>Source</th>
+                            <th>Timestamp</th>
+                            <th>Assertions (P/F)</th>
+                            <th>Avg Response Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="execution-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" style="width: 45%;" tabindex="-1" id="detailsDrawer" aria-labelledby="detailsDrawerLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold" id="detailsDrawerLabel">Run Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body" id="drawer-content-body"></div>
+    </div>
+
+    <script id="dashboard-data" type="application/json">{"title":"DELL - Historical Analytics Dashboard","version":"0.2.0","defaultTheme":"light","generatedAt":"2026-08-10 18:01:07","history":[{"runId":"RUN-205443","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-09 07:38:39","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":364},"requests":[{"id":"809885ad-e58c-418b-bc68-f0e385287282","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":735,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"e49b4ead-44a5-4ba5-8db9-8e847e1a5fbd","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":62,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"d6ed23be-0d23-4669-9143-e53092deadf8","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":697,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"27aa0094-4307-4d6e-adba-5f3633e9e095","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":57,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"478348c4-ab7f-4fb3-93ec-7c0406a334cc","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":271,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{"collectionPath":"C:\\vscode-packaging\\newman-dashboard-testing\\collections\\jsonplaceholder-crud.postman_collection.json","runStats":{"iterations":{"total":1,"pending":0,"failed":0},"items":{"total":5,"pending":0,"failed":0},"scripts":{"total":6,"pending":0,"failed":0},"prerequests":{"total":5,"pending":0,"failed":0},"requests":{"total":5,"pending":0,"failed":0},"tests":{"total":5,"pending":0,"failed":0},"assertions":{"total":12,"pending":0,"failed":0},"testScripts":{"total":5,"pending":0,"failed":0},"prerequestScripts":{"total":1,"pending":0,"failed":0}}}},{"runId":"RUN-529378","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-09 07:40:53","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":883},"requests":[{"id":"c8810102-2e53-4ae9-944d-45eea89e41cc","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":1637,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"bff42ca4-8015-4868-8211-a679cd67a28f","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":715,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"9ca910d8-e3b0-4f00-b159-9fa0913448a3","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":1105,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"1c1e1bd5-177b-463f-855a-8541493f0137","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":243,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"3e94d49d-cef7-46d0-b39c-5728a886c052","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":713,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{"collectionPath":"C:\\vscode-packaging\\newman-dashboard-testing\\collections\\jsonplaceholder-crud.postman_collection.json","runStats":{"iterations":{"total":1,"pending":0,"failed":0},"items":{"total":5,"pending":0,"failed":0},"scripts":{"total":6,"pending":0,"failed":0},"prerequests":{"total":5,"pending":0,"failed":0},"requests":{"total":5,"pending":0,"failed":0},"tests":{"total":5,"pending":0,"failed":0},"assertions":{"total":12,"pending":0,"failed":0},"testScripts":{"total":5,"pending":0,"failed":0},"prerequestScripts":{"total":1,"pending":0,"failed":0}}}},{"runId":"RUN-821035","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-09 07:42:57","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":359},"requests":[{"id":"7f7cbc12-92f1-4d6e-8ed5-43380053b44a","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":727,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"a40ea3cf-6d23-4fb1-b37d-83e1d64702b1","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":54,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"74358f64-3ecd-480e-b036-5562384e79de","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":701,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"7ccab519-fedd-4a96-ae57-b57f14482c61","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":50,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"8c461fe2-88f8-45d2-928c-3303a455f730","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":264,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{"collectionPath":"C:\\vscode-packaging\\newman-dashboard-testing\\collections\\jsonplaceholder-crud.postman_collection.json","runStats":{"iterations":{"total":1,"pending":0,"failed":0},"items":{"total":5,"pending":0,"failed":0},"scripts":{"total":6,"pending":0,"failed":0},"prerequests":{"total":5,"pending":0,"failed":0},"requests":{"total":5,"pending":0,"failed":0},"tests":{"total":5,"pending":0,"failed":0},"assertions":{"total":12,"pending":0,"failed":0},"testScripts":{"total":5,"pending":0,"failed":0},"prerequestScripts":{"total":1,"pending":0,"failed":0}}}},{"runId":"RUN-585041","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-09 11:27:18","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":391},"requests":[{"id":"565023aa-87e0-48e4-bcdd-da9796c5e710","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":780,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"ce6dc7d3-88ee-445f-af21-274b7883b27f","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":82,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"44f9a1b6-f060-48b7-a323-39d365ad7a02","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":721,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"8fe6c70b-f5e2-41f6-9159-8b2d49389c02","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":80,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"59e29160-3e8a-4aaf-8cad-4543517da414","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":292,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{"collectionPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\all-in-one-framework\\collections\\jsonplaceholder-crud.postman_collection.json","runStats":{"iterations":{"total":1,"pending":0,"failed":0},"items":{"total":5,"pending":0,"failed":0},"scripts":{"total":6,"pending":0,"failed":0},"prerequests":{"total":5,"pending":0,"failed":0},"requests":{"total":5,"pending":0,"failed":0},"tests":{"total":5,"pending":0,"failed":0},"assertions":{"total":12,"pending":0,"failed":0},"testScripts":{"total":5,"pending":0,"failed":0},"prerequestScripts":{"total":1,"pending":0,"failed":0}}}},{"runId":"RUN-709423","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-09 11:29:04","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":481},"requests":[{"id":"0ed4329f-fa75-4c7b-b955-fac1fc529033","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":1296,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"7920e7b0-50b7-47f6-bcc9-d47bd2045a0b","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":65,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"6d4a1508-abe7-4c3a-bb31-f55a7c745988","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":706,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"40f503ab-dc5a-4a01-9dd1-52ff5e4224a9","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":62,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"80d37788-9e50-46e4-8e42-316f810c35e0","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":275,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{"collectionPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\all-in-one-framework\\collections\\jsonplaceholder-crud.postman_collection.json","runStats":{"iterations":{"total":1,"pending":0,"failed":0},"items":{"total":5,"pending":0,"failed":0},"scripts":{"total":6,"pending":0,"failed":0},"prerequests":{"total":5,"pending":0,"failed":0},"requests":{"total":5,"pending":0,"failed":0},"tests":{"total":5,"pending":0,"failed":0},"assertions":{"total":12,"pending":0,"failed":0},"testScripts":{"total":5,"pending":0,"failed":0},"prerequestScripts":{"total":1,"pending":0,"failed":0}}}},{"runId":"RUN-315187","tool":"newman","sourceName":"JSONPlaceholder CRUD Chain","timestamp":"2026-08-09 17:44:23","status":"Success","summary":{"totalRequests":5,"passedAssertions":12,"failedAssertions":0,"avgResponseTimeMs":297},"requests":[{"id":"78fe4c75-f6d0-4c84-bcf2-ac508664e921","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":201,"responseTimeMs":553,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"942a06be-0723-40ae-a13f-fdf04f5fff69","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":51,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"8454310c-36e2-4446-ac71-97d29d3fe720","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":604,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Updated title matches request","passed":true},{"name":"Updated body matches request","passed":true}]},{"id":"4c58b25c-cfd2-46c3-81be-755d8f88d336","name":"4. Verify Updated Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":43,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is still 1","passed":true},{"name":"Created post id was captured earlier","passed":true}]},{"id":"01b9e97c-30b4-4633-b312-abc501f18bb6","name":"5. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":232,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete completes the CRUD chain","passed":true}]}],"metadata":{"collectionPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\maven-module-framework\\collections\\jsonplaceholder-crud.postman_collection.json","runStats":{"iterations":{"total":1,"pending":0,"failed":0},"items":{"total":5,"pending":0,"failed":0},"scripts":{"total":6,"pending":0,"failed":0},"prerequests":{"total":5,"pending":0,"failed":0},"requests":{"total":5,"pending":0,"failed":0},"tests":{"total":5,"pending":0,"failed":0},"assertions":{"total":12,"pending":0,"failed":0},"testScripts":{"total":5,"pending":0,"failed":0},"prerequestScripts":{"total":1,"pending":0,"failed":0}}}},{"runId":"RUN-300605","tool":"cypress-bdd","sourceName":"cypress-bdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\cypress-bdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-543394","tool":"cypress-tdd","sourceName":"cypress-tdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\cypress-tdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-536786","tool":"playwright-java-bdd","sourceName":"playwright-java-bdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\playwright-java-bdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-167478","tool":"playwright-java-bdd","sourceName":"playwright-java-bdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":4,"passedAssertions":8,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"TC-2","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"TC-3","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post title updated","passed":true}]},{"id":"TC-4","name":"4. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete acknowledged","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\playwright-java-bdd-api.xml","format":"junit-xml"},"applicationType":"API","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-353728","tool":"playwright-java-tdd","sourceName":"playwright-java-tdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\playwright-java-tdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-851921","tool":"playwright-java-tdd","sourceName":"playwright-java-tdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":4,"passedAssertions":8,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"TC-2","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"TC-3","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post title updated","passed":true}]},{"id":"TC-4","name":"4. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete acknowledged","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\playwright-java-tdd-api.xml","format":"junit-xml"},"applicationType":"API","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-532997","tool":"playwright-ts-tdd","sourceName":"playwright-ts-tdd-ui.json","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"PW-1","name":"playwright-ts-tdd > smoke > shouldLoadDashboardAfterLogin","method":"UI","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"PW-2","name":"playwright-ts-tdd > smoke > shouldLoadLoginPageAfterLogout","method":"UI","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\playwright\\playwright-ts-tdd-ui.json","format":"playwright-json","rootDir":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-757295","tool":"playwright-ts-tdd","sourceName":"playwright-ts-tdd-api.json","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":4,"passedAssertions":8,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"PW-1","name":"playwright-ts-tdd > smoke > 1. Create Post","method":"POST","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"PW-2","name":"playwright-ts-tdd > smoke > 2. Get Post","method":"GET","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"PW-3","name":"playwright-ts-tdd > smoke > 3. Update Post","method":"PUT","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post title updated","passed":true}]},{"id":"PW-4","name":"playwright-ts-tdd > smoke > 4. Delete Post","method":"DELETE","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete acknowledged","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\playwright\\playwright-ts-tdd-api.json","format":"playwright-json","rootDir":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework"},"applicationType":"API","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-672036","tool":"selenium-java-bdd","sourceName":"selenium-java-bdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\selenium-java-bdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-215957","tool":"selenium-java-tdd","sourceName":"selenium-java-tdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\selenium-java-tdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-901130","tool":"wdio-java-bdd","sourceName":"wdio-java-bdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\wdio-java-bdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-191574","tool":"wdio-java-tdd","sourceName":"wdio-java-tdd","timestamp":"2026-08-10 17:31:23","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\wdio-java-tdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-359885","tool":"cypress-bdd","sourceName":"cypress-bdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\cypress-bdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-964248","tool":"cypress-tdd","sourceName":"cypress-tdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\cypress-tdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-395031","tool":"playwright-java-bdd","sourceName":"playwright-java-bdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\playwright-java-bdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-618355","tool":"playwright-java-bdd","sourceName":"playwright-java-bdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":4,"passedAssertions":8,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"TC-2","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"TC-3","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post title updated","passed":true}]},{"id":"TC-4","name":"4. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete acknowledged","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\playwright-java-bdd-api.xml","format":"junit-xml"},"applicationType":"API","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-273257","tool":"playwright-java-tdd","sourceName":"playwright-java-tdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\playwright-java-tdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-640088","tool":"playwright-java-tdd","sourceName":"playwright-java-tdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":4,"passedAssertions":8,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"1. Create Post","method":"POST","url":"https://jsonplaceholder.typicode.com/posts/","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"TC-2","name":"2. Get Post","method":"GET","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"TC-3","name":"3. Update Post","method":"PUT","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post title updated","passed":true}]},{"id":"TC-4","name":"4. Delete Post","method":"DELETE","url":"https://jsonplaceholder.typicode.com/posts/1","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete acknowledged","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\playwright-java-tdd-api.xml","format":"junit-xml"},"applicationType":"API","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-495785","tool":"playwright-ts-tdd","sourceName":"playwright-ts-tdd-ui.json","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"PW-1","name":"playwright-ts-tdd > smoke > shouldLoadDashboardAfterLogin","method":"UI","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"PW-2","name":"playwright-ts-tdd > smoke > shouldLoadLoginPageAfterLogout","method":"UI","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\playwright\\playwright-ts-tdd-ui.json","format":"playwright-json","rootDir":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-405783","tool":"playwright-ts-tdd","sourceName":"playwright-ts-tdd-api.json","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":4,"passedAssertions":8,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"PW-1","name":"playwright-ts-tdd > smoke > 1. Create Post","method":"POST","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 201","passed":true},{"name":"Response contains created post id","passed":true}]},{"id":"PW-2","name":"playwright-ts-tdd > smoke > 2. Get Post","method":"GET","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post id is 1","passed":true}]},{"id":"PW-3","name":"playwright-ts-tdd > smoke > 3. Update Post","method":"PUT","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Post title updated","passed":true}]},{"id":"PW-4","name":"playwright-ts-tdd > smoke > 4. Delete Post","method":"DELETE","url":"playwright-ts-tdd","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Status code is 200","passed":true},{"name":"Delete acknowledged","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\playwright\\playwright-ts-tdd-api.json","format":"playwright-json","rootDir":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework"},"applicationType":"API","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-402361","tool":"selenium-java-bdd","sourceName":"selenium-java-bdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\selenium-java-bdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-341736","tool":"selenium-java-tdd","sourceName":"selenium-java-tdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\selenium-java-tdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-953091","tool":"wdio-java-bdd","sourceName":"wdio-java-bdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\wdio-java-bdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"BDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"},{"runId":"RUN-162702","tool":"wdio-java-tdd","sourceName":"wdio-java-tdd","timestamp":"2026-08-10 18:01:07","status":"Success","summary":{"totalRequests":2,"passedAssertions":4,"failedAssertions":0,"avgResponseTimeMs":420},"requests":[{"id":"TC-1","name":"shouldLoadDashboardAfterLogin","method":"UI","url":"OrangeHRM Dashboard","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Dashboard should load after login","passed":true},{"name":"User menu is visible","passed":true}]},{"id":"TC-2","name":"shouldLoadLoginPageAfterLogout","method":"UI","url":"OrangeHRM Login","statusCode":200,"responseTimeMs":420,"assertions":[{"name":"Login page should load after logout","passed":true},{"name":"Username field is visible","passed":true}]}],"metadata":{"reportPath":"C:\\vscode-packaging\\historical-test-execution-analysis-dashboard\\dell-maven-module-framework\\reports\\junit\\wdio-java-tdd.xml","format":"junit-xml"},"applicationType":"UI","methodology":"TDD","projectId":"dell","projectName":"DELL","frameworkName":"dell-maven-module-framework"}],"filterOptions":{"applicationTypes":["UI","API","Mobile"],"frameworkNames":["dell-maven-module-framework"],"toolNames":["cypress-bdd","cypress-tdd","newman","playwright-java-bdd","playwright-java-tdd","playwright-ts-tdd","selenium-java-bdd","selenium-java-tdd","wdio-java-bdd","wdio-java-tdd"],"projectNames":["DELL"]},"filters":{"applicationTypes":["UI","API","Mobile"],"toolNames":["cypress-bdd","cypress-tdd","newman","playwright-java-bdd","playwright-java-tdd","playwright-ts-tdd","selenium-java-bdd","selenium-java-tdd","wdio-java-bdd","wdio-java-tdd"],"showFrameworkFilter":false,"showToolFilter":true,"showProjectFilter":false}}</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const payload = JSON.parse(document.getElementById('dashboard-data').textContent);
+        let allRuns = [];
+        let filteredRuns = [];
+        const bsDrawer = new bootstrap.Offcanvas(document.getElementById('detailsDrawer'));
+        const themeToggle = document.getElementById('theme-toggle');
+
+        function normalizeRun(run) {
+            const summary = run.summary || {};
+            const requests = (run.requests || []).map((request) => ({
+                ...request,
+                responseTimeMs: request.responseTimeMs ?? request.responseTime ?? 0
+            }));
+
+            return {
+                runId: run.runId,
+                tool: run.tool || 'newman',
+                sourceName: run.sourceName || run.collectionName || 'Unknown Source',
+                timestamp: run.timestamp,
+                status: run.status,
+                projectId: run.projectId || 'unknown',
+                projectName: run.projectName || 'Unknown Project',
+                applicationType: run.applicationType || 'API',
+                frameworkName: run.frameworkName || 'Unknown Application',
+                passedAssertions: summary.passedAssertions ?? run.passedAssertions ?? 0,
+                failedAssertions: summary.failedAssertions ?? run.failedAssertions ?? 0,
+                avgResponseTimeMs: summary.avgResponseTimeMs ?? run.avgResponseTime ?? 0,
+                requests
+            };
+        }
+
+        function uniqueSorted(values) {
+            return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        }
+
+        function toolOptionsForRuns(runs) {
+            const fromRuns = uniqueSorted(runs.map((run) => run.tool));
+            const allowlist = payload.filters?.toolNames || payload.filterOptions?.toolNames;
+            if (allowlist?.length) {
+                const available = fromRuns.length ? fromRuns : allowlist;
+                return allowlist.filter((tool) => available.includes(tool));
+            }
+            return fromRuns;
+        }
+
+        function appTypeOptionsForRuns(runs) {
+            const fromRuns = uniqueSorted(runs.map((run) => run.applicationType));
+            const allowlist = payload.filters?.applicationTypes || payload.filterOptions?.applicationTypes;
+            if (allowlist?.length) {
+                const available = fromRuns.length ? fromRuns : allowlist;
+                return allowlist.filter((type) => available.includes(type));
+            }
+            return fromRuns;
+        }
+
+        function getFilterValue(id) {
+            return document.getElementById(id).value;
+        }
+
+        function runsMatchingFilters(excludeId) {
+            const appType = excludeId === 'filter-application-type' ? '' : getFilterValue('filter-application-type');
+            const tool = excludeId === 'filter-tool' ? '' : getFilterValue('filter-tool');
+
+            return allRuns.filter((run) => {
+                if (appType && run.applicationType !== appType) return false;
+                if (tool && run.tool !== tool) return false;
+                return true;
+            });
+        }
+
+        function rebuildSelect(selectId, allLabel, values, currentValue) {
+            const select = document.getElementById(selectId);
+            const nextValue = values.includes(currentValue) ? currentValue : '';
+            select.innerHTML = `<option value="">${allLabel}</option>`;
+            values.forEach((value) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                select.appendChild(option);
+            });
+            select.value = nextValue;
+        }
+
+        function syncFilters(changedId) {
+            const appTypeValue = getFilterValue('filter-application-type');
+            const toolValue = getFilterValue('filter-tool');
+
+            const appTypeRuns = runsMatchingFilters('filter-application-type');
+            const toolRuns = runsMatchingFilters('filter-tool');
+
+            rebuildSelect(
+                'filter-application-type',
+                'All types',
+                appTypeOptionsForRuns(appTypeRuns),
+                appTypeValue
+            );
+            rebuildSelect(
+                'filter-tool',
+                'All tools',
+                toolOptionsForRuns(toolRuns),
+                toolValue
+            );
+        }
+
+        function applyFilters() {
+            syncFilters();
+            const appType = getFilterValue('filter-application-type');
+            const tool = getFilterValue('filter-tool');
+
+            filteredRuns = allRuns.filter((run) => {
+                if (appType && run.applicationType !== appType) return false;
+                if (tool && run.tool !== tool) return false;
+                return true;
+            });
+
+            renderDashboard();
+        }
+
+        function initFilters() {
+            ['filter-application-type', 'filter-tool'].forEach((id) => {
+                document.getElementById(id).addEventListener('change', applyFilters);
+            });
+            syncFilters();
+            filteredRuns = [...allRuns];
+        }
+
+        function getStoredTheme(defaultTheme) {
+            return localStorage.getItem('dashboard-theme') || defaultTheme || 'light';
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('dashboard-theme', theme);
+            themeToggle.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const nextTheme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        });
+
+        function renderDashboard() {
+            const data = filteredRuns;
+
+            if (!data.length) {
+                document.getElementById('stat-total-runs').innerText = '0 runs';
+                document.getElementById('stat-success-rate').innerText = '0%';
+                document.getElementById('stat-application-types').innerText = '0';
+                document.getElementById('execution-table-body').innerHTML =
+                    '<tr><td colspan="10" class="text-center text-muted py-4">No runs match the selected filters.</td></tr>';
+                renderCharts([]);
+                return;
+            }
+
+            const applicationTypes = new Set(data.map((run) => run.applicationType));
+            document.getElementById('stat-total-runs').innerText = `${data.length} executions`;
+            document.getElementById('stat-application-types').innerText = `${applicationTypes.size}`;
+            const passCount = data.filter((run) => run.status !== 'Failure').length;
+            document.getElementById('stat-success-rate').innerText = `${Math.round((passCount / data.length) * 100)}%`;
+
+            const tbody = document.getElementById('execution-table-body');
+            tbody.innerHTML = '';
+
+            data.slice().reverse().forEach((run) => {
+                const row = document.createElement('tr');
+                row.className = 'clickable-row';
+                row.onclick = () => showDetailedRunBreakdown(run.runId);
+                row.innerHTML = `
+                    <td class="fw-bold text-primary">${run.runId}</td>
+                    <td><span class="badge text-bg-info">${run.applicationType}</span></td>
+                    <td>${run.frameworkName}</td>
+                    <td>${run.projectName}</td>
+                    <td><span class="badge text-bg-secondary">${run.tool}</span></td>
+                    <td>${run.sourceName}</td>
+                    <td class="text-muted">${run.timestamp}</td>
+                    <td><span class="text-success">${run.passedAssertions} ✓</span> / <span class="text-danger">${run.failedAssertions} ✗</span></td>
+                    <td><strong>${run.avgResponseTimeMs}ms</strong></td>
+                    <td><span class="status-${run.status}">${run.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            renderCharts(data);
+        }
+
+        function showDetailedRunBreakdown(runId) {
+            const run = filteredRuns.find((entry) => entry.runId === runId);
+            if (!run) return;
+
+            document.getElementById('detailsDrawerLabel').innerText = `Execution Report: ${run.runId}`;
+            const body = document.getElementById('drawer-content-body');
+
+            let html = `
+                <div class="mb-4">
+                    <h6><strong>Project:</strong> ${run.projectName}</h6>
+                    <h6><strong>Application Type:</strong> ${run.applicationType}</h6>
+                    <h6><strong>Application:</strong> ${run.frameworkName}</h6>
+                    <h6><strong>Tool:</strong> ${run.tool}</h6>
+                    <h6><strong>Source:</strong> ${run.sourceName}</h6>
+                    <p class="text-muted mb-1">Executed at: ${run.timestamp}</p>
+                    <div class="badge text-bg-secondary p-2">Average Response Latency: ${run.avgResponseTimeMs}ms</div>
+                </div>
+                <hr/>`;
+
+            run.requests.forEach((request, index) => {
+                const statusBadge = request.statusCode >= 200 && request.statusCode < 300 ? 'bg-success' : 'bg-danger';
+
+                html += `
+                    <div class="card p-3 mb-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold m-0">${index + 1}. ${request.name}</h6>
+                            <span class="badge ${statusBadge}">${request.method} ${request.statusCode}</span>
+                        </div>
+                        <div class="text-muted font-monospace small mb-2 text-truncate">${request.url}</div>
+                        <div class="small text-secondary mb-2">Response Time: <strong>${request.responseTimeMs}ms</strong></div>
+                        <div class="mt-2">
+                            <h6>Assertions:</h6>
+                            ${!request.assertions || request.assertions.length === 0
+                                ? '<p class="text-muted small m-0">No assertions defined for this step.</p>'
+                                : request.assertions.map((assertion) => `
+                                    <div class="d-flex align-items-start gap-2 my-1">
+                                        <span>${assertion.passed ? '✅' : '❌'}</span>
+                                        <div>
+                                            <span class="${assertion.passed ? 'text-success' : 'text-danger fw-bold'}">${assertion.name}</span>
+                                            ${assertion.errorMessage ? `<div class="text-muted font-monospace" style="font-size:11px">${assertion.errorMessage}</div>` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    </div>`;
+            });
+
+            body.innerHTML = html;
+            bsDrawer.show();
+        }
+
+        function renderCharts(data) {
+            const existingTrendChart = Chart.getChart('trendChart');
+            if (existingTrendChart) existingTrendChart.destroy();
+
+            const existingLatencyChart = Chart.getChart('latencyChart');
+            if (existingLatencyChart) existingLatencyChart.destroy();
+
+            const trendCanvas = document.getElementById('trendChart');
+            if (!trendCanvas || !data.length) return;
+
+            new Chart(trendCanvas, {
+                type: 'bar',
+                data: {
+                    labels: data.map((run) => run.runId),
+                    datasets: [
+                        {
+                            label: 'Passed Assertions',
+                            data: data.map((run) => run.passedAssertions),
+                            backgroundColor: 'rgba(25, 135, 84, 0.6)',
+                            borderColor: '#198754',
+                            borderWidth: 1,
+                            stack: 'assertions',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Failed Assertions',
+                            data: data.map((run) => run.failedAssertions),
+                            backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                            borderColor: '#dc3545',
+                            borderWidth: 1,
+                            stack: 'assertions',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Avg Response Time (ms)',
+                            data: data.map((run) => run.avgResponseTimeMs),
+                            type: 'line',
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 8, right: 12, bottom: 8, left: 8 } },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 12
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Assertion Check Quantities' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: 'Latency Speed (ms)' },
+                            grid: { drawOnChartArea: false },
+                            ticks: { callback: (value) => `${value}ms` }
+                        }
+                    },
+                    onClick(event, _activeElements, chart) {
+                        const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                        if (points.length > 0) {
+                            showDetailedRunBreakdown(data[points[0].index].runId);
+                        }
+                    }
+                }
+            });
+
+            const latencyCanvas = document.getElementById('latencyChart');
+            if (!latencyCanvas) return;
+
+            const latest = data[data.length - 1];
+            new Chart(latencyCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Passed Assertions', 'Failed Assertions'],
+                    datasets: [{
+                        data: [latest.passedAssertions, latest.failedAssertions],
+                        backgroundColor: ['#198754', '#dc3545'],
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: `Latest Run State (${latest.runId})` }
+                    }
+                }
+            });
+        }
+
+        function initMetricsEngine() {
+            document.getElementById('dashboard-title').innerText = payload.title;
+            document.title = payload.title;
+            document.getElementById('dashboard-version').innerText = `v${payload.version}`;
+            document.getElementById('generated-at').innerText = `Generated at ${payload.generatedAt}`;
+            applyTheme(getStoredTheme(payload.defaultTheme));
+
+            allRuns = (payload.history || []).map(normalizeRun);
+            initFilters();
+            renderDashboard();
+        }
+
+        window.onload = initMetricsEngine;
+    </script>
+</body>
+</html>

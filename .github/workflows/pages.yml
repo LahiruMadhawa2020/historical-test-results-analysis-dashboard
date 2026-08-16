@@ -1,0 +1,45 @@
+name: Deploy dashboards to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout pre-built dashboards
+        uses: actions/checkout@v4
+
+      - name: Verify dashboard files exist
+        run: |
+          test -f docs/index.html
+          test -f docs/wk-dashboard.html
+          test -f docs/dell-dashboard.html
+          test -f docs/sr-link-dashboard.html
+          test -f docs/management-dashboard.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

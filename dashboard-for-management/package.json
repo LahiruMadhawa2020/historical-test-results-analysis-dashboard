@@ -1,0 +1,11 @@
+{
+  "name": "dashboard-for-management",
+  "version": "1.0.0",
+  "description": "Management dashboard aggregating historical test data across all framework projects",
+  "scripts": {
+    "dashboard:generate": "node scripts/generate-dashboard.mjs"
+  },
+  "devDependencies": {
+    "historical-test-results-analysis-dashboard": "file:../historical-test-results-analysis-dashboard"
+  }
+}

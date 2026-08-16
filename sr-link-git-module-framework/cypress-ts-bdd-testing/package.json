@@ -1,0 +1,18 @@
+{
+  "name": "sr-link-cypress-ts-bdd-testing",
+  "version": "1.0.0",
+  "description": "Sr Link — Cypress TypeScript BDD",
+  "scripts": {
+    "test": "cypress run --spec tests/cypress/ui/bdd/login-logout.feature",
+    "analytics:import": "node scripts/copy-cypress-junit.mjs cypress-bdd && analytics-dashboard import reports/junit/cypress-bdd.xml --format junit-xml --tool cypress-bdd --application-type UI --methodology BDD --config dashboard.config.ts",
+    "analytics:run": "npm run test && npm run analytics:import && npm run analytics:generate",
+    "analytics:generate": "analytics-dashboard generate --config dashboard.config.ts"
+  },
+  "devDependencies": {
+    "@badeball/cypress-cucumber-preprocessor": "^20.0.5",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.0",
+    "cypress": "^13.7.0",
+    "historical-test-results-analysis-dashboard": "file:../../historical-test-results-analysis-dashboard",
+    "typescript": "^5.4.2"
+  }
+}

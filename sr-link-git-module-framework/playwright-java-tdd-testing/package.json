@@ -1,0 +1,17 @@
+{
+  "name": "sr-link-playwright-java-tdd-testing",
+  "version": "1.0.0",
+  "description": "Sr Link — sr-link-playwright-java-tdd-testing",
+  "scripts": {
+    "test:ui": "mvn -Dtest=com.srlink.playwright.tdd.ui.LoginLogoutTddTest test",
+    "test:api": "mvn -Dtest=com.srlink.playwright.tdd.api.JsonPlaceholderCrudTddTest test",
+    "analytics:import:ui": "node scripts/copy-junit.mjs playwright-java-tdd com.srlink.playwright.tdd.ui.LoginLogoutTddTest && analytics-dashboard import reports/junit/playwright-java-tdd.xml --format junit-xml --tool playwright-java-tdd --application-type UI --methodology TDD --config dashboard.config.ts",
+    "analytics:import:api": "node scripts/copy-junit.mjs playwright-java-api-tdd com.srlink.playwright.tdd.api.JsonPlaceholderCrudTddTest && analytics-dashboard import reports/junit/playwright-java-api-tdd.xml --format junit-xml --tool playwright-java-api-tdd --application-type API --methodology TDD --config dashboard.config.ts",
+    "analytics:run:ui": "npm run test:ui && npm run analytics:import:ui && npm run analytics:generate",
+    "analytics:run:api": "npm run test:api && npm run analytics:import:api && npm run analytics:generate",
+    "analytics:generate": "analytics-dashboard generate --config dashboard.config.ts"
+  },
+  "devDependencies": {
+    "historical-test-results-analysis-dashboard": "file:../../historical-test-results-analysis-dashboard"
+  }
+}
