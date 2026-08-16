@@ -4,7 +4,7 @@
   "description": "Historical test execution analysis dashboard orchestrator for Newman and future test tools",
   "repository": {
     "type": "git",
-    "url": "https://github.com/publisheswithlahiru91/historical-test-results-analysis-dashboard.git"
+    "url": "https://github.com/LahiruMadhawa2020/historical-test-results-analysis-dashboard.git"
   },
   "type": "module",
   "main": "dist/index.js",
