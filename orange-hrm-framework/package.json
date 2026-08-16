@@ -1,0 +1,17 @@
+{
+  "name": "orange-hrm-framework",
+  "version": "1.0.0",
+  "description": "Playwright TypeScript framework for OrangeHRM login/logout testing",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "test:report": "npx playwright show-report",
+    "dashboard:generate": "analytics-dashboard generate",
+    "dashboard:import:playwright": "analytics-dashboard import test-results.json --format playwright-json --tool playwright-ts-tdd"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.41.0",
+    "typescript": "^5.3.3"
+  }
+}

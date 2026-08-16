@@ -1,0 +1,24 @@
+{
+  "name": "historical-test-results-analysis-dashboard",
+  "version": "1.0.0",
+  "description": "Historical test results analysis dashboard with Playwright and Newman integration",
+  "scripts": {
+    "test:orangehrm": "cd orange-hrm-framework && npm test",
+    "test:newman": "cd json-plaeholder-project && npm test",
+    "test:all": "npm run test:orangehrm && npm run test:newman",
+    "dashboard:generate": "analytics-dashboard generate",
+    "dashboard:generate:management": "cd dashboard-for-management && npm run dashboard:generate",
+    "dashboard:open": "open reports/analytics-dashboard.html",
+    "dashboard:open:management": "cd dashboard-for-management && npm run dashboard:open",
+    "install:all": "npm install && cd orange-hrm-framework && npm install && cd ../json-plaeholder-project && npm install && cd ../dashboard-for-management && npm install",
+    "postinstall:playwright": "cd orange-hrm-framework && npx playwright install chromium"
+  },
+  "devDependencies": {
+    "historical-analytics-dashboard": "https://github.com/publisheswithlahiru91/historical-test-results-analysis-dashboard.git"
+  },
+  "workspaces": [
+    "orange-hrm-framework",
+    "json-plaeholder-project",
+    "dashboard-for-management"
+  ]
+}

@@ -101,6 +101,34 @@ const srLinkSources: SourceSpec[] = STANDARD_TOOL_IDS.flatMap((tool) => {
 
 const exampleRemoteSources: ManagementSourceConfig[] = [
   {
+    id: 'orange-hrm-playwright',
+    label: 'OrangeHRM · playwright-ts-tdd',
+    projectName: 'OrangeHRM',
+    frameworkName: 'orange-hrm-framework',
+    applicationType: 'UI',
+    tool: 'playwright-ts-tdd',
+    methodology: 'TDD',
+    storage: {
+      type: 'filesystem',
+      rootDir: '../orange-hrm-framework/.analytics-data'
+    },
+    enabled: true
+  },
+  {
+    id: 'jsonplaceholder-newman',
+    label: 'JSONPlaceholder · newman',
+    projectName: 'JSONPlaceholder',
+    frameworkName: 'json-plaeholder-project',
+    applicationType: 'API',
+    tool: 'newman',
+    methodology: 'TDD',
+    storage: {
+      type: 'filesystem',
+      rootDir: '../json-plaeholder-project/.analytics-data'
+    },
+    enabled: true
+  },
+  {
     id: 'example-s3-wk-selenium',
     label: 'Example · WK Selenium (S3)',
     projectName: 'WK',

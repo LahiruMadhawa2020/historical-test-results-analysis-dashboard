@@ -1,17 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { fileURLToPath } from 'url';
+import { loadManagementConfig, ManagementDashboardGenerator } from 'historical-analytics-dashboard';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
-const libRoot = path.resolve(root, '..', 'historical-analytics-dashboard', 'dist');
 
 async function main() {
-  const { loadManagementConfig } = await import(pathToFileURL(path.join(libRoot, 'config', 'load-config.js')).href);
-  const { ManagementDashboardGenerator } = await import(
-    pathToFileURL(path.join(libRoot, 'core', 'management-dashboard-generator.js')).href
-  );
-
   const { config } = loadManagementConfig({
     configPath: path.join(root, 'dashboard.config.ts'),
     cwd: root

@@ -1,0 +1,290 @@
+{
+  "config": {
+    "argv": [
+      "/Users/lahirumadhawa/.nvm/versions/node/v20.20.2/bin/node",
+      "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/node_modules/.bin/playwright",
+      "test"
+    ],
+    "configFile": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/playwright.config.ts",
+    "rootDir": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "login-logout.failing.spec.ts",
+      "file": "login-logout.failing.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "OrangeHRM Login/Logout - Failing Tests",
+          "file": "login-logout.failing.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should fail when expecting wrong dashboard header text",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5332,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"Wrong Dashboard Header Text That Does Not Exist\"\u001b[39m\nReceived string:    \u001b[31m\"Dashboard\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"Wrong Dashboard Header Text That Does Not Exist\"\u001b[39m\nReceived string:    \u001b[31m\"Dashboard\"\u001b[39m\n    at /Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts:22:24",
+                        "location": {
+                          "file": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts",
+                          "column": 24,
+                          "line": 22
+                        },
+                        "snippet": "  20 |     // This assertion will FAIL - expecting wrong header text\n  21 |     const headerText = await dashboardPage.getHeaderText();\n> 22 |     expect(headerText).toContain('Wrong Dashboard Header Text That Does Not Exist');\n     |                        ^\n  23 |\n  24 |     // Logout (this won't be reached due to failing assertion above)\n  25 |     await dashboardPage.logout();"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts",
+                            "column": 24,
+                            "line": 22
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"Wrong Dashboard Header Text That Does Not Exist\"\u001b[39m\nReceived string:    \u001b[31m\"Dashboard\"\u001b[39m\n\n  20 |     // This assertion will FAIL - expecting wrong header text\n  21 |     const headerText = await dashboardPage.getHeaderText();\n> 22 |     expect(headerText).toContain('Wrong Dashboard Header Text That Does Not Exist');\n     |                        ^\n  23 |\n  24 |     // Logout (this won't be reached due to failing assertion above)\n  25 |     await dashboardPage.logout();\n    at /Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts:22:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-16T18:19:59.838Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/test-results/login-logout.failing-Orang-60003-wrong-dashboard-header-text-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/test-results/login-logout.failing-Orang-60003-wrong-dashboard-header-text-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts",
+                        "column": 24,
+                        "line": 22
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "69374cd90c6f97ce013d-40bd83827d9f512b86a3",
+              "file": "login-logout.failing.spec.ts",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "title": "should fail when trying to login with invalid credentials",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3958,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeNull\u001b[2m()\u001b[22m\n\nReceived: \u001b[31m\"Invalid credentials\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeNull\u001b[2m()\u001b[22m\n\nReceived: \u001b[31m\"Invalid credentials\"\u001b[39m\n    at /Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts:40:26",
+                        "location": {
+                          "file": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts",
+                          "column": 26,
+                          "line": 40
+                        },
+                        "snippet": "  38 |     // This assertion will FAIL - expecting no error message\n  39 |     const errorMessage = await loginPage.getErrorMessage();\n> 40 |     expect(errorMessage).toBeNull();\n     |                          ^\n  41 |   });\n  42 | });\n  43 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts",
+                            "column": 26,
+                            "line": 40
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeNull\u001b[2m()\u001b[22m\n\nReceived: \u001b[31m\"Invalid credentials\"\u001b[39m\n\n  38 |     // This assertion will FAIL - expecting no error message\n  39 |     const errorMessage = await loginPage.getErrorMessage();\n> 40 |     expect(errorMessage).toBeNull();\n     |                          ^\n  41 |   });\n  42 | });\n  43 |\n    at /Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts:40:26"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-16T18:20:06.137Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/test-results/login-logout.failing-Orang-393e8-in-with-invalid-credentials-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/test-results/login-logout.failing-Orang-393e8-in-with-invalid-credentials-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/lahirumadhawa/NodeProjects/npm-reference-repos/historical-test-results-analysis-dashboard/orange-hrm-framework/src/tests/login-logout.failing.spec.ts",
+                        "column": 26,
+                        "line": 40
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "69374cd90c6f97ce013d-202d9a5063b4ad31ebb9",
+              "file": "login-logout.failing.spec.ts",
+              "line": 28,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "login-logout.passing.spec.ts",
+      "file": "login-logout.passing.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "OrangeHRM Login/Logout - Passing Tests",
+          "file": "login-logout.passing.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should login with valid credentials and logout successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6178,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-16T18:20:10.598Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "dc83277c293af5edb66a-176fe693d77d35271acb",
+              "file": "login-logout.passing.spec.ts",
+              "line": 6,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-16T18:19:59.485Z",
+    "duration": 17458.288,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}
