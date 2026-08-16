@@ -1,0 +1,2511 @@
+{
+  "collection": {
+    "_": {
+      "postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    },
+    "item": [
+      {
+        "id": "2031629e-1750-4c3d-ab33-84af000638ea",
+        "name": "1. Create Post",
+        "request": {
+          "description": {
+            "content": "Create a new post and store response values for downstream requests.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              ""
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"title\": \"Newman chained post\",\n  \"body\": \"Created for chained CRUD flow\",\n  \"userId\": 1\n}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "952d574e-5f06-4462-8076-860bcf4216a1",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code is 201', function () {",
+                "    pm.response.to.have.status(201);",
+                "});",
+                "",
+                "const jsonData = pm.response.json();",
+                "",
+                "pm.test('Response contains created post id', function () {",
+                "    pm.expect(jsonData).to.have.property('id');",
+                "});",
+                "",
+                "pm.collectionVariables.set('createdPostId', String(jsonData.id));",
+                "pm.collectionVariables.set('createdTitle', jsonData.title);",
+                "pm.collectionVariables.set('createdBody', jsonData.body);",
+                "pm.collectionVariables.set('createdUserId', String(jsonData.userId));"
+              ],
+              "_lastExecutionId": "29d2573d-dd19-486d-a5b9-186ada0cda86"
+            }
+          }
+        ]
+      },
+      {
+        "id": "2fce35f7-14c3-4def-9710-2ca6a28e6510",
+        "name": "2. Get Post",
+        "request": {
+          "description": {
+            "content": "Fetch post 1 and capture current title/body for the update step.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              "1"
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "c7bb719d-c5ce-4997-b849-22b46efaf6de",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "const jsonData = pm.response.json();",
+                "",
+                "pm.test('Post id is 1', function () {",
+                "    pm.expect(jsonData.id).to.eql(1);",
+                "});",
+                "",
+                "pm.collectionVariables.set('existingTitle', jsonData.title);",
+                "pm.collectionVariables.set('existingBody', jsonData.body);"
+              ],
+              "_lastExecutionId": "a673d61e-a672-46a9-8192-8623238aa0b1"
+            }
+          }
+        ]
+      },
+      {
+        "id": "cf6909e7-e167-4663-8c48-977491e66168",
+        "name": "3. Update Post",
+        "request": {
+          "description": {
+            "content": "Update post 1 using values prepared from the previous chain steps.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              "1"
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"id\": 1,\n  \"title\": \"{{updatedTitle}}\",\n  \"body\": \"{{updatedBody}}\",\n  \"userId\": 1\n}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "77742191-76d1-4b02-b85c-fa43e5748919",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "const jsonData = pm.response.json();",
+                "",
+                "pm.test('Updated title matches request', function () {",
+                "    pm.expect(jsonData.title).to.eql(pm.collectionVariables.get('updatedTitle'));",
+                "});",
+                "",
+                "pm.test('Updated body matches request', function () {",
+                "    pm.expect(jsonData.body).to.eql(pm.collectionVariables.get('updatedBody'));",
+                "});"
+              ],
+              "_lastExecutionId": "4f67e829-8d8a-4edc-80d4-57f4150104ca"
+            }
+          },
+          {
+            "listen": "prerequest",
+            "script": {
+              "id": "aee2c2e0-b4db-4366-80fc-1bd0a391db4f",
+              "type": "text/javascript",
+              "exec": [
+                "const updatedTitle = 'Updated via Newman chain';",
+                "const updatedBody = 'PUT chained after create and GET';",
+                "",
+                "pm.collectionVariables.set('updatedTitle', updatedTitle);",
+                "pm.collectionVariables.set('updatedBody', updatedBody);"
+              ],
+              "_lastExecutionId": "a9035d4d-2a90-4aa0-9a81-3eb0682dca5a"
+            }
+          }
+        ]
+      },
+      {
+        "id": "fcf29b30-224c-491a-8bdb-d3c0d4fa8079",
+        "name": "4. Verify Updated Post",
+        "request": {
+          "description": {
+            "content": "Re-fetch post 1 after the PUT step to complete the read-update-verify chain.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              "1"
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "e5da3f88-810b-49f5-82b1-21bd0ea8a671",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "const jsonData = pm.response.json();",
+                "",
+                "pm.test('Post id is still 1', function () {",
+                "    pm.expect(jsonData.id).to.eql(1);",
+                "});",
+                "",
+                "pm.test('Created post id was captured earlier', function () {",
+                "    pm.expect(pm.collectionVariables.get('createdPostId')).to.be.a('string').and.not.empty;",
+                "});"
+              ],
+              "_lastExecutionId": "7dc0b9ea-1f37-444a-83e5-0a4400c1d862"
+            }
+          }
+        ]
+      },
+      {
+        "id": "25b8dbbb-2c35-47fb-91be-85f36a2d45ab",
+        "name": "5. Delete Post",
+        "request": {
+          "description": {
+            "content": "Delete post 1 to finish the chained CRUD workflow.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              "1"
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "DELETE"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "4e2989c8-44e6-4e79-89ef-9154b8b69ae8",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test('Delete completes the CRUD chain', function () {",
+                "    pm.expect(pm.collectionVariables.get('createdPostId')).to.exist;",
+                "});"
+              ],
+              "_lastExecutionId": "7cabaabe-a2ea-456d-a0c8-f8f2ee20d8ae"
+            }
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "type": "any",
+        "value": "",
+        "key": "createdPostId"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "createdTitle"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "createdBody"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "createdUserId"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "existingTitle"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "existingBody"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "updatedTitle"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "updatedBody"
+      }
+    ],
+    "info": {
+      "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "JSONPlaceholder CRUD Chain",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": {
+        "content": "Chained CRUD flow against JSONPlaceholder: POST create, GET, PUT, GET verify, DELETE.",
+        "type": "text/plain"
+      }
+    }
+  },
+  "environment": {
+    "id": "cdeedc0c-f610-4311-a336-e00eb87db548",
+    "values": []
+  },
+  "globals": {
+    "id": "47347e65-5ee8-4455-a7d6-a9a3caffc190",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 6,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 12,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 297,
+      "responseMin": 45,
+      "responseMax": 742,
+      "responseSd": 255.00823516114144,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1786902688488,
+      "completed": 1786902690091
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 5,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "8aa3ea5a-7c79-4452-bff2-530217e623ee",
+          "httpRequestId": "9aaf5267-6cb0-4511-9d39-74e9eeb79788"
+        },
+        "item": {
+          "id": "2031629e-1750-4c3d-ab33-84af000638ea",
+          "name": "1. Create Post",
+          "request": {
+            "description": {
+              "content": "Create a new post and store response values for downstream requests.",
+              "type": "text/plain"
+            },
+            "url": {
+              "protocol": "https",
+              "path": [
+                "posts",
+                ""
+              ],
+              "host": [
+                "jsonplaceholder",
+                "typicode",
+                "com"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Newman chained post\",\n  \"body\": \"Created for chained CRUD flow\",\n  \"userId\": 1\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "952d574e-5f06-4462-8076-860bcf4216a1",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Response contains created post id', function () {",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('createdPostId', String(jsonData.id));",
+                  "pm.collectionVariables.set('createdTitle', jsonData.title);",
+                  "pm.collectionVariables.set('createdBody', jsonData.body);",
+                  "pm.collectionVariables.set('createdUserId', String(jsonData.userId));"
+                ],
+                "_lastExecutionId": "29d2573d-dd19-486d-a5b9-186ada0cda86"
+              }
+            }
+          ]
+        },
+        "request": {
+          "description": {
+            "content": "Create a new post and store response values for downstream requests.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              ""
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "cd032309-72e7-4226-b7b4-8b6515cb9461",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "jsonplaceholder.typicode.com",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "94",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"title\": \"Newman chained post\",\n  \"body\": \"Created for chained CRUD flow\",\n  \"userId\": 1\n}"
+          }
+        },
+        "response": {
+          "id": "f642e2e1-5206-47db-81e1-9c1f51ef9e76",
+          "status": "Created",
+          "code": 201,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Sun, 16 Aug 2026 17:51:28 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "107"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "access-control-allow-credentials",
+              "value": "true"
+            },
+            {
+              "key": "access-control-expose-headers",
+              "value": "Location"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"6b-Hoo42ki4Qacavo+r1EAclLFzJyI\""
+            },
+            {
+              "key": "expires",
+              "value": "-1"
+            },
+            {
+              "key": "location",
+              "value": "https://jsonplaceholder.typicode.com/posts//101"
+            },
+            {
+              "key": "nel",
+              "value": "{\"report_to\":\"heroku-nel\",\"response_headers\":[\"Via\"],\"max_age\":3600,\"success_fraction\":0.01,\"failure_fraction\":0.1}"
+            },
+            {
+              "key": "pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "report-to",
+              "value": "{\"group\":\"heroku-nel\",\"endpoints\":[{\"url\":\"https://nel.heroku.com/reports?s=vSIEQaFBQLHYOoyG%2FvjrXo3S97%2FJ7wu8yN9G5%2Bcq3Ig%3D\\u0026sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d\\u0026ts=1786902688\"}],\"max_age\":3600}"
+            },
+            {
+              "key": "reporting-endpoints",
+              "value": "heroku-nel=\"https://nel.heroku.com/reports?s=vSIEQaFBQLHYOoyG%2FvjrXo3S97%2FJ7wu8yN9G5%2Bcq3Ig%3D&sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d&ts=1786902688\""
+            },
+            {
+              "key": "Server",
+              "value": "cloudflare"
+            },
+            {
+              "key": "vary",
+              "value": "Origin, X-HTTP-Method-Override, Accept-Encoding"
+            },
+            {
+              "key": "via",
+              "value": "2.0 heroku-router"
+            },
+            {
+              "key": "x-content-type-options",
+              "value": "nosniff"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            },
+            {
+              "key": "x-ratelimit-limit",
+              "value": "1000"
+            },
+            {
+              "key": "x-ratelimit-remaining",
+              "value": "999"
+            },
+            {
+              "key": "x-ratelimit-reset",
+              "value": "1786902705"
+            },
+            {
+              "key": "cf-cache-status",
+              "value": "DYNAMIC"
+            },
+            {
+              "key": "CF-RAY",
+              "value": "a2c2498c49606ed1-BOM"
+            },
+            {
+              "key": "alt-svc",
+              "value": "h3=\":443\"; ma=86400"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              10,
+              32,
+              32,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              34,
+              58,
+              32,
+              34,
+              78,
+              101,
+              119,
+              109,
+              97,
+              110,
+              32,
+              99,
+              104,
+              97,
+              105,
+              110,
+              101,
+              100,
+              32,
+              112,
+              111,
+              115,
+              116,
+              34,
+              44,
+              10,
+              32,
+              32,
+              34,
+              98,
+              111,
+              100,
+              121,
+              34,
+              58,
+              32,
+              34,
+              67,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              32,
+              102,
+              111,
+              114,
+              32,
+              99,
+              104,
+              97,
+              105,
+              110,
+              101,
+              100,
+              32,
+              67,
+              82,
+              85,
+              68,
+              32,
+              102,
+              108,
+              111,
+              119,
+              34,
+              44,
+              10,
+              32,
+              32,
+              34,
+              117,
+              115,
+              101,
+              114,
+              73,
+              100,
+              34,
+              58,
+              32,
+              49,
+              44,
+              10,
+              32,
+              32,
+              34,
+              105,
+              100,
+              34,
+              58,
+              32,
+              49,
+              48,
+              49,
+              10,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 393,
+          "responseSize": 107
+        },
+        "id": "2031629e-1750-4c3d-ab33-84af000638ea",
+        "assertions": [
+          {
+            "assertion": "Status code is 201",
+            "skipped": false
+          },
+          {
+            "assertion": "Response contains created post id",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "9adc8772-0f01-4563-9f45-8121a070125c",
+          "length": 5,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "a4be1858-3f49-46f7-bf4a-b944725510f1"
+        },
+        "item": {
+          "id": "2fce35f7-14c3-4def-9710-2ca6a28e6510",
+          "name": "2. Get Post",
+          "request": {
+            "description": {
+              "content": "Fetch post 1 and capture current title/body for the update step.",
+              "type": "text/plain"
+            },
+            "url": {
+              "protocol": "https",
+              "path": [
+                "posts",
+                "1"
+              ],
+              "host": [
+                "jsonplaceholder",
+                "typicode",
+                "com"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c7bb719d-c5ce-4997-b849-22b46efaf6de",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Post id is 1', function () {",
+                  "    pm.expect(jsonData.id).to.eql(1);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('existingTitle', jsonData.title);",
+                  "pm.collectionVariables.set('existingBody', jsonData.body);"
+                ],
+                "_lastExecutionId": "a673d61e-a672-46a9-8192-8623238aa0b1"
+              }
+            }
+          ]
+        },
+        "request": {
+          "description": {
+            "content": "Fetch post 1 and capture current title/body for the update step.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              "1"
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "79fd7f72-f415-4362-bb45-bc0628445545",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "jsonplaceholder.typicode.com",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "f5d10744-b771-4524-9aff-64af57414368",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Sun, 16 Aug 2026 17:51:28 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "access-control-allow-credentials",
+              "value": "true"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "max-age=43200"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"124-yiKdLzqO5gfBrJFrcdJ8Yq0LGnU\""
+            },
+            {
+              "key": "expires",
+              "value": "-1"
+            },
+            {
+              "key": "nel",
+              "value": "{\"report_to\":\"heroku-nel\",\"response_headers\":[\"Via\"],\"max_age\":3600,\"success_fraction\":0.01,\"failure_fraction\":0.1}"
+            },
+            {
+              "key": "pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "report-to",
+              "value": "{\"group\":\"heroku-nel\",\"endpoints\":[{\"url\":\"https://nel.heroku.com/reports?s=wHOimZOPbHhs1%2F1SIPq1hvn9o4G1USYXx6VKUbL%2BIDI%3D\\u0026sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d\\u0026ts=1785194658\"}],\"max_age\":3600}"
+            },
+            {
+              "key": "reporting-endpoints",
+              "value": "heroku-nel=\"https://nel.heroku.com/reports?s=wHOimZOPbHhs1%2F1SIPq1hvn9o4G1USYXx6VKUbL%2BIDI%3D&sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d&ts=1785194658\""
+            },
+            {
+              "key": "Server",
+              "value": "cloudflare"
+            },
+            {
+              "key": "vary",
+              "value": "Origin, Accept-Encoding"
+            },
+            {
+              "key": "via",
+              "value": "2.0 heroku-router"
+            },
+            {
+              "key": "x-content-type-options",
+              "value": "nosniff"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            },
+            {
+              "key": "x-ratelimit-limit",
+              "value": "1000"
+            },
+            {
+              "key": "x-ratelimit-remaining",
+              "value": "999"
+            },
+            {
+              "key": "x-ratelimit-reset",
+              "value": "1785194663"
+            },
+            {
+              "key": "Age",
+              "value": "26490"
+            },
+            {
+              "key": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "key": "Content-Encoding",
+              "value": "br"
+            },
+            {
+              "key": "CF-RAY",
+              "value": "a2c2498e0a0a6ed1-BOM"
+            },
+            {
+              "key": "alt-svc",
+              "value": "h3=\":443\"; ma=86400"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              10,
+              32,
+              32,
+              34,
+              117,
+              115,
+              101,
+              114,
+              73,
+              100,
+              34,
+              58,
+              32,
+              49,
+              44,
+              10,
+              32,
+              32,
+              34,
+              105,
+              100,
+              34,
+              58,
+              32,
+              49,
+              44,
+              10,
+              32,
+              32,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              34,
+              58,
+              32,
+              34,
+              115,
+              117,
+              110,
+              116,
+              32,
+              97,
+              117,
+              116,
+              32,
+              102,
+              97,
+              99,
+              101,
+              114,
+              101,
+              32,
+              114,
+              101,
+              112,
+              101,
+              108,
+              108,
+              97,
+              116,
+              32,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              110,
+              116,
+              32,
+              111,
+              99,
+              99,
+              97,
+              101,
+              99,
+              97,
+              116,
+              105,
+              32,
+              101,
+              120,
+              99,
+              101,
+              112,
+              116,
+              117,
+              114,
+              105,
+              32,
+              111,
+              112,
+              116,
+              105,
+              111,
+              32,
+              114,
+              101,
+              112,
+              114,
+              101,
+              104,
+              101,
+              110,
+              100,
+              101,
+              114,
+              105,
+              116,
+              34,
+              44,
+              10,
+              32,
+              32,
+              34,
+              98,
+              111,
+              100,
+              121,
+              34,
+              58,
+              32,
+              34,
+              113,
+              117,
+              105,
+              97,
+              32,
+              101,
+              116,
+              32,
+              115,
+              117,
+              115,
+              99,
+              105,
+              112,
+              105,
+              116,
+              92,
+              110,
+              115,
+              117,
+              115,
+              99,
+              105,
+              112,
+              105,
+              116,
+              32,
+              114,
+              101,
+              99,
+              117,
+              115,
+              97,
+              110,
+              100,
+              97,
+              101,
+              32,
+              99,
+              111,
+              110,
+              115,
+              101,
+              113,
+              117,
+              117,
+              110,
+              116,
+              117,
+              114,
+              32,
+              101,
+              120,
+              112,
+              101,
+              100,
+              105,
+              116,
+              97,
+              32,
+              101,
+              116,
+              32,
+              99,
+              117,
+              109,
+              92,
+              110,
+              114,
+              101,
+              112,
+              114,
+              101,
+              104,
+              101,
+              110,
+              100,
+              101,
+              114,
+              105,
+              116,
+              32,
+              109,
+              111,
+              108,
+              101,
+              115,
+              116,
+              105,
+              97,
+              101,
+              32,
+              117,
+              116,
+              32,
+              117,
+              116,
+              32,
+              113,
+              117,
+              97,
+              115,
+              32,
+              116,
+              111,
+              116,
+              97,
+              109,
+              92,
+              110,
+              110,
+              111,
+              115,
+              116,
+              114,
+              117,
+              109,
+              32,
+              114,
+              101,
+              114,
+              117,
+              109,
+              32,
+              101,
+              115,
+              116,
+              32,
+              97,
+              117,
+              116,
+              101,
+              109,
+              32,
+              115,
+              117,
+              110,
+              116,
+              32,
+              114,
+              101,
+              109,
+              32,
+              101,
+              118,
+              101,
+              110,
+              105,
+              101,
+              116,
+              32,
+              97,
+              114,
+              99,
+              104,
+              105,
+              116,
+              101,
+              99,
+              116,
+              111,
+              34,
+              10,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 73,
+          "responseSize": 292
+        },
+        "id": "2fce35f7-14c3-4def-9710-2ca6a28e6510",
+        "assertions": [
+          {
+            "assertion": "Status code is 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Post id is 1",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "1ab5e667-cb0f-4a11-ad8d-00af0e1b0d02",
+          "length": 5,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "ce0bed6a-15ae-40f3-87fc-8faf03041f4f"
+        },
+        "item": {
+          "id": "cf6909e7-e167-4663-8c48-977491e66168",
+          "name": "3. Update Post",
+          "request": {
+            "description": {
+              "content": "Update post 1 using values prepared from the previous chain steps.",
+              "type": "text/plain"
+            },
+            "url": {
+              "protocol": "https",
+              "path": [
+                "posts",
+                "1"
+              ],
+              "host": [
+                "jsonplaceholder",
+                "typicode",
+                "com"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"title\": \"{{updatedTitle}}\",\n  \"body\": \"{{updatedBody}}\",\n  \"userId\": 1\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "77742191-76d1-4b02-b85c-fa43e5748919",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Updated title matches request', function () {",
+                  "    pm.expect(jsonData.title).to.eql(pm.collectionVariables.get('updatedTitle'));",
+                  "});",
+                  "",
+                  "pm.test('Updated body matches request', function () {",
+                  "    pm.expect(jsonData.body).to.eql(pm.collectionVariables.get('updatedBody'));",
+                  "});"
+                ],
+                "_lastExecutionId": "4f67e829-8d8a-4edc-80d4-57f4150104ca"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "aee2c2e0-b4db-4366-80fc-1bd0a391db4f",
+                "type": "text/javascript",
+                "exec": [
+                  "const updatedTitle = 'Updated via Newman chain';",
+                  "const updatedBody = 'PUT chained after create and GET';",
+                  "",
+                  "pm.collectionVariables.set('updatedTitle', updatedTitle);",
+                  "pm.collectionVariables.set('updatedBody', updatedBody);"
+                ],
+                "_lastExecutionId": "a9035d4d-2a90-4aa0-9a81-3eb0682dca5a"
+              }
+            }
+          ]
+        },
+        "request": {
+          "description": {
+            "content": "Update post 1 using values prepared from the previous chain steps.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              "1"
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "504062ec-a4a5-4e7c-8bb8-6d85925d29e2",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "jsonplaceholder.typicode.com",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "113",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"id\": 1,\n  \"title\": \"Updated via Newman chain\",\n  \"body\": \"PUT chained after create and GET\",\n  \"userId\": 1\n}"
+          }
+        },
+        "response": {
+          "id": "0dff429b-068c-4c32-ab99-cb771d92fa4c",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Sun, 16 Aug 2026 17:51:29 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "access-control-allow-credentials",
+              "value": "true"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"71-fAAd6UK3zypmY/HojsMbvaIqNFg\""
+            },
+            {
+              "key": "expires",
+              "value": "-1"
+            },
+            {
+              "key": "nel",
+              "value": "{\"report_to\":\"heroku-nel\",\"response_headers\":[\"Via\"],\"max_age\":3600,\"success_fraction\":0.01,\"failure_fraction\":0.1}"
+            },
+            {
+              "key": "pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "report-to",
+              "value": "{\"group\":\"heroku-nel\",\"endpoints\":[{\"url\":\"https://nel.heroku.com/reports?s=qo%2BvEgqTQQ2O2%2FPmKfsv5LXllfCEVj%2B4nMqCg%2F%2FHALo%3D\\u0026sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d\\u0026ts=1786902689\"}],\"max_age\":3600}"
+            },
+            {
+              "key": "reporting-endpoints",
+              "value": "heroku-nel=\"https://nel.heroku.com/reports?s=qo%2BvEgqTQQ2O2%2FPmKfsv5LXllfCEVj%2B4nMqCg%2F%2FHALo%3D&sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d&ts=1786902689\""
+            },
+            {
+              "key": "Server",
+              "value": "cloudflare"
+            },
+            {
+              "key": "vary",
+              "value": "Origin, Accept-Encoding"
+            },
+            {
+              "key": "via",
+              "value": "2.0 heroku-router"
+            },
+            {
+              "key": "x-content-type-options",
+              "value": "nosniff"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            },
+            {
+              "key": "x-ratelimit-limit",
+              "value": "1000"
+            },
+            {
+              "key": "x-ratelimit-remaining",
+              "value": "998"
+            },
+            {
+              "key": "x-ratelimit-reset",
+              "value": "1786902705"
+            },
+            {
+              "key": "cf-cache-status",
+              "value": "DYNAMIC"
+            },
+            {
+              "key": "Content-Encoding",
+              "value": "br"
+            },
+            {
+              "key": "CF-RAY",
+              "value": "a2c2498eaa526ed1-BOM"
+            },
+            {
+              "key": "alt-svc",
+              "value": "h3=\":443\"; ma=86400"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              10,
+              32,
+              32,
+              34,
+              105,
+              100,
+              34,
+              58,
+              32,
+              49,
+              44,
+              10,
+              32,
+              32,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              34,
+              58,
+              32,
+              34,
+              85,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              32,
+              118,
+              105,
+              97,
+              32,
+              78,
+              101,
+              119,
+              109,
+              97,
+              110,
+              32,
+              99,
+              104,
+              97,
+              105,
+              110,
+              34,
+              44,
+              10,
+              32,
+              32,
+              34,
+              98,
+              111,
+              100,
+              121,
+              34,
+              58,
+              32,
+              34,
+              80,
+              85,
+              84,
+              32,
+              99,
+              104,
+              97,
+              105,
+              110,
+              101,
+              100,
+              32,
+              97,
+              102,
+              116,
+              101,
+              114,
+              32,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              32,
+              97,
+              110,
+              100,
+              32,
+              71,
+              69,
+              84,
+              34,
+              44,
+              10,
+              32,
+              32,
+              34,
+              117,
+              115,
+              101,
+              114,
+              73,
+              100,
+              34,
+              58,
+              32,
+              49,
+              10,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 742,
+          "responseSize": 113
+        },
+        "id": "cf6909e7-e167-4663-8c48-977491e66168",
+        "assertions": [
+          {
+            "assertion": "Status code is 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Updated title matches request",
+            "skipped": false
+          },
+          {
+            "assertion": "Updated body matches request",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "1a936352-884a-433e-b344-e1b9c0a028c5",
+          "length": 5,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "c3858fff-f759-404b-8124-bdd930712550"
+        },
+        "item": {
+          "id": "fcf29b30-224c-491a-8bdb-d3c0d4fa8079",
+          "name": "4. Verify Updated Post",
+          "request": {
+            "description": {
+              "content": "Re-fetch post 1 after the PUT step to complete the read-update-verify chain.",
+              "type": "text/plain"
+            },
+            "url": {
+              "protocol": "https",
+              "path": [
+                "posts",
+                "1"
+              ],
+              "host": [
+                "jsonplaceholder",
+                "typicode",
+                "com"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "e5da3f88-810b-49f5-82b1-21bd0ea8a671",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Post id is still 1', function () {",
+                  "    pm.expect(jsonData.id).to.eql(1);",
+                  "});",
+                  "",
+                  "pm.test('Created post id was captured earlier', function () {",
+                  "    pm.expect(pm.collectionVariables.get('createdPostId')).to.be.a('string').and.not.empty;",
+                  "});"
+                ],
+                "_lastExecutionId": "7dc0b9ea-1f37-444a-83e5-0a4400c1d862"
+              }
+            }
+          ]
+        },
+        "request": {
+          "description": {
+            "content": "Re-fetch post 1 after the PUT step to complete the read-update-verify chain.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              "1"
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "1e633fce-bdec-4b4c-a07a-662e10c722d8",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "jsonplaceholder.typicode.com",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "a40f7e39-7e32-418d-bc09-145ff0e03c46",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Sun, 16 Aug 2026 17:51:29 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "access-control-allow-credentials",
+              "value": "true"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "max-age=43200"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"124-yiKdLzqO5gfBrJFrcdJ8Yq0LGnU\""
+            },
+            {
+              "key": "expires",
+              "value": "-1"
+            },
+            {
+              "key": "nel",
+              "value": "{\"report_to\":\"heroku-nel\",\"response_headers\":[\"Via\"],\"max_age\":3600,\"success_fraction\":0.01,\"failure_fraction\":0.1}"
+            },
+            {
+              "key": "pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "report-to",
+              "value": "{\"group\":\"heroku-nel\",\"endpoints\":[{\"url\":\"https://nel.heroku.com/reports?s=wHOimZOPbHhs1%2F1SIPq1hvn9o4G1USYXx6VKUbL%2BIDI%3D\\u0026sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d\\u0026ts=1785194658\"}],\"max_age\":3600}"
+            },
+            {
+              "key": "reporting-endpoints",
+              "value": "heroku-nel=\"https://nel.heroku.com/reports?s=wHOimZOPbHhs1%2F1SIPq1hvn9o4G1USYXx6VKUbL%2BIDI%3D&sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d&ts=1785194658\""
+            },
+            {
+              "key": "Server",
+              "value": "cloudflare"
+            },
+            {
+              "key": "vary",
+              "value": "Origin, Accept-Encoding"
+            },
+            {
+              "key": "via",
+              "value": "2.0 heroku-router"
+            },
+            {
+              "key": "x-content-type-options",
+              "value": "nosniff"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            },
+            {
+              "key": "x-ratelimit-limit",
+              "value": "1000"
+            },
+            {
+              "key": "x-ratelimit-remaining",
+              "value": "999"
+            },
+            {
+              "key": "x-ratelimit-reset",
+              "value": "1785194663"
+            },
+            {
+              "key": "Age",
+              "value": "26491"
+            },
+            {
+              "key": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "key": "Content-Encoding",
+              "value": "br"
+            },
+            {
+              "key": "CF-RAY",
+              "value": "a2c249936c9d6ed1-BOM"
+            },
+            {
+              "key": "alt-svc",
+              "value": "h3=\":443\"; ma=86400"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              10,
+              32,
+              32,
+              34,
+              117,
+              115,
+              101,
+              114,
+              73,
+              100,
+              34,
+              58,
+              32,
+              49,
+              44,
+              10,
+              32,
+              32,
+              34,
+              105,
+              100,
+              34,
+              58,
+              32,
+              49,
+              44,
+              10,
+              32,
+              32,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              34,
+              58,
+              32,
+              34,
+              115,
+              117,
+              110,
+              116,
+              32,
+              97,
+              117,
+              116,
+              32,
+              102,
+              97,
+              99,
+              101,
+              114,
+              101,
+              32,
+              114,
+              101,
+              112,
+              101,
+              108,
+              108,
+              97,
+              116,
+              32,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              110,
+              116,
+              32,
+              111,
+              99,
+              99,
+              97,
+              101,
+              99,
+              97,
+              116,
+              105,
+              32,
+              101,
+              120,
+              99,
+              101,
+              112,
+              116,
+              117,
+              114,
+              105,
+              32,
+              111,
+              112,
+              116,
+              105,
+              111,
+              32,
+              114,
+              101,
+              112,
+              114,
+              101,
+              104,
+              101,
+              110,
+              100,
+              101,
+              114,
+              105,
+              116,
+              34,
+              44,
+              10,
+              32,
+              32,
+              34,
+              98,
+              111,
+              100,
+              121,
+              34,
+              58,
+              32,
+              34,
+              113,
+              117,
+              105,
+              97,
+              32,
+              101,
+              116,
+              32,
+              115,
+              117,
+              115,
+              99,
+              105,
+              112,
+              105,
+              116,
+              92,
+              110,
+              115,
+              117,
+              115,
+              99,
+              105,
+              112,
+              105,
+              116,
+              32,
+              114,
+              101,
+              99,
+              117,
+              115,
+              97,
+              110,
+              100,
+              97,
+              101,
+              32,
+              99,
+              111,
+              110,
+              115,
+              101,
+              113,
+              117,
+              117,
+              110,
+              116,
+              117,
+              114,
+              32,
+              101,
+              120,
+              112,
+              101,
+              100,
+              105,
+              116,
+              97,
+              32,
+              101,
+              116,
+              32,
+              99,
+              117,
+              109,
+              92,
+              110,
+              114,
+              101,
+              112,
+              114,
+              101,
+              104,
+              101,
+              110,
+              100,
+              101,
+              114,
+              105,
+              116,
+              32,
+              109,
+              111,
+              108,
+              101,
+              115,
+              116,
+              105,
+              97,
+              101,
+              32,
+              117,
+              116,
+              32,
+              117,
+              116,
+              32,
+              113,
+              117,
+              97,
+              115,
+              32,
+              116,
+              111,
+              116,
+              97,
+              109,
+              92,
+              110,
+              110,
+              111,
+              115,
+              116,
+              114,
+              117,
+              109,
+              32,
+              114,
+              101,
+              114,
+              117,
+              109,
+              32,
+              101,
+              115,
+              116,
+              32,
+              97,
+              117,
+              116,
+              101,
+              109,
+              32,
+              115,
+              117,
+              110,
+              116,
+              32,
+              114,
+              101,
+              109,
+              32,
+              101,
+              118,
+              101,
+              110,
+              105,
+              101,
+              116,
+              32,
+              97,
+              114,
+              99,
+              104,
+              105,
+              116,
+              101,
+              99,
+              116,
+              111,
+              34,
+              10,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 45,
+          "responseSize": 292
+        },
+        "id": "fcf29b30-224c-491a-8bdb-d3c0d4fa8079",
+        "assertions": [
+          {
+            "assertion": "Status code is 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Post id is still 1",
+            "skipped": false
+          },
+          {
+            "assertion": "Created post id was captured earlier",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "fb3b6a71-7e95-4834-a409-9f9a389e4d23",
+          "length": 5,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "a8f8981c-f603-4f57-9c04-3f91587e2deb"
+        },
+        "item": {
+          "id": "25b8dbbb-2c35-47fb-91be-85f36a2d45ab",
+          "name": "5. Delete Post",
+          "request": {
+            "description": {
+              "content": "Delete post 1 to finish the chained CRUD workflow.",
+              "type": "text/plain"
+            },
+            "url": {
+              "protocol": "https",
+              "path": [
+                "posts",
+                "1"
+              ],
+              "host": [
+                "jsonplaceholder",
+                "typicode",
+                "com"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "DELETE"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "4e2989c8-44e6-4e79-89ef-9154b8b69ae8",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Delete completes the CRUD chain', function () {",
+                  "    pm.expect(pm.collectionVariables.get('createdPostId')).to.exist;",
+                  "});"
+                ],
+                "_lastExecutionId": "7cabaabe-a2ea-456d-a0c8-f8f2ee20d8ae"
+              }
+            }
+          ]
+        },
+        "request": {
+          "description": {
+            "content": "Delete post 1 to finish the chained CRUD workflow.",
+            "type": "text/plain"
+          },
+          "url": {
+            "protocol": "https",
+            "path": [
+              "posts",
+              "1"
+            ],
+            "host": [
+              "jsonplaceholder",
+              "typicode",
+              "com"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "56806c5d-1b33-4d5c-8751-f29db7c8e901",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "jsonplaceholder.typicode.com",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "DELETE"
+        },
+        "response": {
+          "id": "ed98968d-fc90-48a7-a32d-ae2425310b47",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Sun, 16 Aug 2026 17:51:30 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "2"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "access-control-allow-credentials",
+              "value": "true"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            },
+            {
+              "key": "etag",
+              "value": "W/\"2-vyGp6PvFo4RvsFtPoIWeCReyIC8\""
+            },
+            {
+              "key": "expires",
+              "value": "-1"
+            },
+            {
+              "key": "nel",
+              "value": "{\"report_to\":\"heroku-nel\",\"response_headers\":[\"Via\"],\"max_age\":3600,\"success_fraction\":0.01,\"failure_fraction\":0.1}"
+            },
+            {
+              "key": "pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "report-to",
+              "value": "{\"group\":\"heroku-nel\",\"endpoints\":[{\"url\":\"https://nel.heroku.com/reports?s=qo%2BvEgqTQQ2O2%2FPmKfsv5LXllfCEVj%2B4nMqCg%2F%2FHALo%3D\\u0026sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d\\u0026ts=1786902689\"}],\"max_age\":3600}"
+            },
+            {
+              "key": "reporting-endpoints",
+              "value": "heroku-nel=\"https://nel.heroku.com/reports?s=qo%2BvEgqTQQ2O2%2FPmKfsv5LXllfCEVj%2B4nMqCg%2F%2FHALo%3D&sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d&ts=1786902689\""
+            },
+            {
+              "key": "Server",
+              "value": "cloudflare"
+            },
+            {
+              "key": "vary",
+              "value": "Origin, Accept-Encoding"
+            },
+            {
+              "key": "via",
+              "value": "2.0 heroku-router"
+            },
+            {
+              "key": "x-content-type-options",
+              "value": "nosniff"
+            },
+            {
+              "key": "x-powered-by",
+              "value": "Express"
+            },
+            {
+              "key": "x-ratelimit-limit",
+              "value": "1000"
+            },
+            {
+              "key": "x-ratelimit-remaining",
+              "value": "997"
+            },
+            {
+              "key": "x-ratelimit-reset",
+              "value": "1786902705"
+            },
+            {
+              "key": "cf-cache-status",
+              "value": "DYNAMIC"
+            },
+            {
+              "key": "CF-RAY",
+              "value": "a2c24993ccc06ed1-BOM"
+            },
+            {
+              "key": "alt-svc",
+              "value": "h3=\":443\"; ma=86400"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 232,
+          "responseSize": 2
+        },
+        "id": "25b8dbbb-2c35-47fb-91be-85f36a2d45ab",
+        "assertions": [
+          {
+            "assertion": "Status code is 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Delete completes the CRUD chain",
+            "skipped": false
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 806
+    },
+    "failures": [],
+    "error": null
+  }
+}
