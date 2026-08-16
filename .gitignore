@@ -9,6 +9,9 @@ dist/
 .analytics-data/
 .analytics-history.json
 reports/
+playwright-report/
+test-results/
+newman/
 
 # Environment and secrets
 
